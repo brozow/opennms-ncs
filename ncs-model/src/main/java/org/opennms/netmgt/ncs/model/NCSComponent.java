@@ -1,6 +1,8 @@
 package org.opennms.netmgt.ncs.model;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -10,6 +12,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
+import javax.persistence.JoinTable;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -17,6 +21,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import org.hibernate.annotations.CollectionOfElements;
+import org.hibernate.annotations.MapKey;
+
 
 @Entity
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
@@ -57,6 +66,14 @@ public class NCSComponent {
     @XmlElement(name="dependenciesRequired")
     private DependencyRequirements m_dependenciesRequired;
     
+    //@CollectionOfElements
+    //@JoinTable(name="_attributes", joinColumns = @JoinColumn(name="alarmId"))
+    //@MapKey(columns=@Column(name="attribute"))
+    @Column(name="attributes", nullable=false)
+    @XmlElement(name = "attributes", required = true)
+    @XmlJavaTypeAdapter(JAXBMapAdapter.class)
+    private Map<String, String> m_attributes = new LinkedHashMap<String, String>();
+
     @ManyToMany
     @XmlElement(name="component")
     private Set<NCSComponent> m_subcomponents = new LinkedHashSet<NCSComponent>();
@@ -132,5 +149,18 @@ public class NCSComponent {
 	public void removeSubcomponent(NCSComponent subComponent) {
 		getSubcomponents().remove(subComponent);
 	}
+	
+	public Map<String, String> getAttributes() {
+		return m_attributes;
+	}
+	
+	public void setAttribute(String key, String value) {
+		m_attributes.put(key, value);
+	}
+	
+	public String removeAttribute(String key) {
+		return m_attributes.remove(key);
+	}
+
     
 }

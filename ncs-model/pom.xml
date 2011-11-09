@@ -22,6 +22,7 @@
           </includes>
           <excludes>
             <exclude>org/opennms/netmgt/ncs/model/NCSBuilder.java</exclude>
+            <exclude>org/opennms/netmgt/ncs/model/JAXBMapAdapter.java</exclude>
           </excludes>
           <schemas>
             <schema>
@@ -65,12 +66,12 @@
       <artifactId>jaxb-dependencies</artifactId>
       <type>pom</type>
     </dependency>
-<!--
     <dependency>
       <groupId>org.opennms.dependencies</groupId>
       <artifactId>hibernate-dependencies</artifactId>
       <type>pom</type>
     </dependency>
+<!--
     <dependency>
       <groupId>org.opennms.dependencies</groupId>
       <artifactId>spring-dependencies</artifactId>

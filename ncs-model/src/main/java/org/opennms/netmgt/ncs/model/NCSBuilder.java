@@ -36,6 +36,11 @@ public class NCSBuilder {
 		return this;
 	}
 	
+	public NCSBuilder setAttribute(String key, String value) {
+		m_component.setAttribute(key, value);
+		return this;
+	}
+	
 	public NCSBuilder setDependenciesRequired(DependencyRequirements requirements)
 	{
 		m_component.setDependenciesRequired(requirements);
