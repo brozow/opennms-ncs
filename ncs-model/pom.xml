@@ -9,6 +9,36 @@
   <name>OpenNMS NCS Model Components</name>
   <build>
     <plugins>
+      <plugin>
+        <groupId>com.sun.tools.jxc.maven2</groupId>
+        <artifactId>maven-jaxb-schemagen-plugin</artifactId>
+        <version>1.2</version>
+        <configuration>
+          <destdir>${project.build.directory}/xsds</destdir>
+          <srcdir>${basedir}/src/main/java</srcdir>
+          <verbose>false</verbose>
+          <includes>
+            <include>org/opennms/netmgt/ncs/model/*.java</include>
+          </includes>
+          <excludes>
+            <exclude>org/opennms/netmgt/ncs/model/NCSBuilder.java</exclude>
+          </excludes>
+          <schemas>
+            <schema>
+              <namespace>http://xmlns.opennms.org/xsd/model/ncs</namespace>
+              <file>ncs-model.xsd</file>
+            </schema>
+          </schemas>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>process-sources</phase>
+            <goals>
+              <goal>generate</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
 <!--
       <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
