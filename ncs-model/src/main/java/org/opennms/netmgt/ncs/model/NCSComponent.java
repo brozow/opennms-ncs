@@ -18,6 +18,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
@@ -35,6 +36,34 @@ public class NCSComponent {
 	
 	public enum DependencyRequirements { ANY, ALL };
 	
+	@XmlRootElement(name="node")
+	@XmlAccessorType(XmlAccessType.FIELD)
+	public static class NodeIdentification {
+		@XmlAttribute(name="foreignSource", required=true)
+		private String m_foreignSource;
+		
+	    @XmlAttribute(name="foreignId", required=true)
+	    private String m_foreignId;
+	    
+		public String getForeignSource() {
+			return m_foreignSource;
+		}
+
+		public void setForeignSource(String foreignSource) {
+			m_foreignSource = foreignSource;
+		}
+
+		public String getForeignId() {
+			return m_foreignId;
+		}
+
+		public void setForeignId(String foreignId) {
+			m_foreignId = foreignId;
+		}
+
+	    	    
+	}
+	
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id")
@@ -47,36 +76,55 @@ public class NCSComponent {
     private Integer m_version;
     
     @Column(name = "foreignSource")
-    @XmlElement(name="foreignSource")
+    @XmlAttribute(name="foreignSource", required=true)
     private String m_foreignSource;
     
     @Column(name = "foreignId")
-    @XmlElement(name="foreignId", required=true)
+    @XmlAttribute(name="foreignId", required=true)
     private String m_foreignId;
     
     @Column(name = "type")
-    @XmlElement(name="type", required=true)
+    @XmlAttribute(name="type", required=true)
     private String m_type;
     
     @Column(name = "name")
     @XmlElement(name="name")
     private String m_name;
+    
+    @XmlElement(name="node")
+    private NodeIdentification m_nodeIdentification;
 
+    @XmlElement(name="upEventUei")
+    private String m_upEventUei;
+    
+    @XmlElement(name="downEventUei")
+    private String m_downEventUei;
+    
     @Column(name = "depsRequired")
-    @XmlElement(name="dependenciesRequired")
+    @XmlElement(name="dependenciesRequired", required=false, defaultValue="ALL")
     private DependencyRequirements m_dependenciesRequired;
     
     //@CollectionOfElements
     //@JoinTable(name="_attributes", joinColumns = @JoinColumn(name="alarmId"))
     //@MapKey(columns=@Column(name="attribute"))
     @Column(name="attributes", nullable=false)
-    @XmlElement(name = "attributes", required = true)
+    @XmlElement(name = "attributes", required = false)
     @XmlJavaTypeAdapter(JAXBMapAdapter.class)
     private Map<String, String> m_attributes = new LinkedHashMap<String, String>();
 
     @ManyToMany
     @XmlElement(name="component")
     private Set<NCSComponent> m_subcomponents = new LinkedHashSet<NCSComponent>();
+    
+    public NCSComponent(String type, String foreignSource, String foreignId) {
+    	this();
+    	m_type = type;
+    	m_foreignSource = foreignSource;
+    	m_foreignId = foreignId;
+    }
+    
+    public NCSComponent() {
+    }
 
     public Long getId() {
         return m_id;
@@ -117,6 +165,14 @@ public class NCSComponent {
 	public void setType(String type) {
 		m_type = type;
 	}
+	
+	public NodeIdentification getNodeIdentification() {
+		return m_nodeIdentification;
+	}
+	
+	public void setNodeIdentification(NodeIdentification nodeIdentification) {
+		m_nodeIdentification = nodeIdentification;
+	}
 
 	public String getName() {
 		return m_name;
@@ -125,7 +181,23 @@ public class NCSComponent {
 	public void setName(String name) {
 		m_name = name;
 	}
-
+	
+	public String getUpEventUei() {
+		return m_upEventUei;
+	}
+	
+	public void setUpEventUei(String upEventUei) {
+		m_upEventUei = upEventUei;
+	}
+	
+	public String getDownEventUei() {
+		return m_downEventUei;
+	}
+	
+	public void setDownEventUei(String downEventUei) {
+		m_downEventUei = downEventUei;
+	}
+	
 	public DependencyRequirements getDependenciesRequired() {
 		return m_dependenciesRequired;
 	}

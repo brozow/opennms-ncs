@@ -7,8 +7,8 @@ public class NCSBuilder {
 	final private NCSBuilder m_parent;
 	final private NCSComponent m_component;
 	
-	public NCSBuilder() {
-		this(null, new NCSComponent());
+	public NCSBuilder(String type, String foreignSource, String foreignId) {
+		this(null, new NCSComponent(type, foreignSource, foreignId));
 	}
 	
 	public NCSBuilder(NCSBuilder parent, NCSComponent component) {
@@ -47,8 +47,8 @@ public class NCSBuilder {
 		return this;
 	}
 
-	public NCSBuilder pushComponent() {
-		NCSComponent sub = new NCSComponent();
+	public NCSBuilder pushComponent(String type, String foreignSource, String foreignId) {
+		NCSComponent sub = new NCSComponent(type, foreignSource, foreignId);
 		m_component.addSubcomponent(sub);
 		return new NCSBuilder(this, sub);
 	}

@@ -5,7 +5,8 @@
     <version>1.9.93-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>opennms-ncs</artifactId>
+  <groupId>org.opennms.ncs</groupId>
+  <artifactId>ncs-model</artifactId>
   <name>OpenNMS NCS Model Components</name>
   <build>
     <plugins>
