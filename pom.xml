@@ -8,6 +8,7 @@
   <name>OpenNMS NCS Root Project</name>
   <modules>
     <module>ncs-model</module>
+    <module>ncs-persistence</module>
   </modules>
 
 </project>

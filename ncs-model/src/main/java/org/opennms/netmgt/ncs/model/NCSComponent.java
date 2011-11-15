@@ -5,8 +5,13 @@ import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -38,11 +43,14 @@ public class NCSComponent {
 	
 	@XmlRootElement(name="node")
 	@XmlAccessorType(XmlAccessType.FIELD)
+	@Embeddable
 	public static class NodeIdentification {
 		@XmlAttribute(name="foreignSource", required=true)
+		@Column(name = "nodeForeignSource")
 		private String m_foreignSource;
 		
 	    @XmlAttribute(name="foreignId", required=true)
+		@Column(name = "nodeForeignId")
 	    private String m_foreignId;
 	    
 		public String getForeignSource() {
@@ -92,27 +100,32 @@ public class NCSComponent {
     private String m_name;
     
     @XmlElement(name="node")
+    @Embedded
     private NodeIdentification m_nodeIdentification;
 
     @XmlElement(name="upEventUei")
+    @Column(name="upEventUei")
     private String m_upEventUei;
     
     @XmlElement(name="downEventUei")
+    @Column(name="downEventUei")
     private String m_downEventUei;
     
+    @Enumerated(EnumType.STRING)
     @Column(name = "depsRequired")
     @XmlElement(name="dependenciesRequired", required=false, defaultValue="ALL")
     private DependencyRequirements m_dependenciesRequired;
     
-    //@CollectionOfElements
-    //@JoinTable(name="_attributes", joinColumns = @JoinColumn(name="alarmId"))
-    //@MapKey(columns=@Column(name="attribute"))
-    @Column(name="attributes", nullable=false)
+    @CollectionOfElements
+    @JoinTable(name="ncs_attributes")
+    @MapKey(columns=@Column(name="key"))
+    @Column(name="value", nullable=false)
     @XmlElement(name = "attributes", required = false)
     @XmlJavaTypeAdapter(JAXBMapAdapter.class)
     private Map<String, String> m_attributes = new LinkedHashMap<String, String>();
 
-    @ManyToMany
+    @ManyToMany(cascade=CascadeType.ALL)
+    @JoinTable(name="subcomponents", joinColumns = { @JoinColumn(name="component_id") }, inverseJoinColumns = { @JoinColumn(name="subcomponent_id") })
     @XmlElement(name="component")
     private Set<NCSComponent> m_subcomponents = new LinkedHashSet<NCSComponent>();
     
