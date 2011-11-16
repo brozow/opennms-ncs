@@ -1,4 +1,4 @@
-package org.opennms.netmgt.ncs.model;
+package org.opennms.netmgt.model.ncs;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;

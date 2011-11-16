@@ -29,8 +29,8 @@
 package org.opennms.netmgt.ncs.persistence;
 
 import org.opennms.netmgt.dao.hibernate.AbstractDaoHibernate;
-import org.opennms.netmgt.ncs.model.NCSComponent;
-import org.opennms.netmgt.ncs.model.NCSComponentRepository;
+import org.opennms.netmgt.model.ncs.NCSComponent;
+import org.opennms.netmgt.model.ncs.NCSComponentRepository;
 
 public class NCSComponentDao extends AbstractDaoHibernate<NCSComponent, Long> implements NCSComponentRepository {
 

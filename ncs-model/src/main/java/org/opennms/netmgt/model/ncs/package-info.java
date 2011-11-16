@@ -27,7 +27,7 @@
  *******************************************************************************/
 
 @XmlSchema(namespace = "http://xmlns.opennms.org/xsd/model/ncs", elementFormDefault = XmlNsForm.QUALIFIED)
-package org.opennms.netmgt.ncs.model;
+package org.opennms.netmgt.model.ncs;
 import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlNsForm;
 

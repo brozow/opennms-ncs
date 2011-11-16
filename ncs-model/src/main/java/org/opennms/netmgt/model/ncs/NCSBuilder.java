@@ -1,6 +1,6 @@
-package org.opennms.netmgt.ncs.model;
+package org.opennms.netmgt.model.ncs;
 
-import org.opennms.netmgt.ncs.model.NCSComponent.DependencyRequirements;
+import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
 
 public class NCSBuilder {
 	

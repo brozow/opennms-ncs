@@ -1,4 +1,4 @@
-package org.opennms.netmgt.ncs.model;
+package org.opennms.netmgt.model.ncs;
 
 import static org.junit.Assert.*;
 
@@ -17,7 +17,9 @@ import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
 import org.junit.Test;
-import org.opennms.netmgt.ncs.model.NCSComponent.DependencyRequirements;
+import org.opennms.netmgt.model.ncs.NCSBuilder;
+import org.opennms.netmgt.model.ncs.NCSComponent;
+import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
 import org.xml.sax.SAXException;
 
 public class JAXBTest {

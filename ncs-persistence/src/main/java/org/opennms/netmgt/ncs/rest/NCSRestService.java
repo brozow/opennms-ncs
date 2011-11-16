@@ -36,10 +36,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.opennms.netmgt.ncs.model.NCSBuilder;
-import org.opennms.netmgt.ncs.model.NCSComponent;
-import org.opennms.netmgt.ncs.model.NCSComponent.DependencyRequirements;
-import org.opennms.netmgt.ncs.model.NCSComponentRepository;
+import org.opennms.netmgt.model.ncs.NCSBuilder;
+import org.opennms.netmgt.model.ncs.NCSComponent;
+import org.opennms.netmgt.model.ncs.NCSComponentRepository;
+import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
