@@ -13,13 +13,13 @@ import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Inheritance;
 import javax.persistence.InheritanceType;
 import javax.persistence.JoinTable;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -33,7 +33,7 @@ import org.hibernate.annotations.CollectionOfElements;
 import org.hibernate.annotations.MapKey;
 
 
-@Entity
+@Entity(name="ncscomponent")
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @XmlRootElement(name="component")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -73,8 +73,9 @@ public class NCSComponent {
 	}
 	
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    @Column(name = "id")
+    @Column(name="id", nullable=false)
+    @SequenceGenerator(name="opennmsSequence", sequenceName="opennmsNxtId")
+    @GeneratedValue(generator="opennmsSequence")
     @XmlElement(name="id")
     private Long m_id;
 
