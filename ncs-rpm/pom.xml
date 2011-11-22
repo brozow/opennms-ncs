@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <parent>
+    <artifactId>opennms</artifactId>
+    <groupId>org.opennms</groupId>
+    <version>1.9.94-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.opennms.ncs</groupId>
+  <artifactId>ncs-rpm</artifactId>
+  <name>OpenNMS NCS RPM Package</name>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rpm-maven-plugin</artifactId>
+        <version>2.1-alpha-1</version>
+        <executions>
+          <execution>
+            <goals><goal>rpm</goal></goals>
+          </execution>
+        </executions>
+        <configuration>
+          <copyright>2011, The OpenNMS Group, Inc.</copyright>
+          <group>Application/System</group>
+          <prefix>/opt/opennms</prefix>
+          <!-- <defineStatements>
+            <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
+          </defineStatements> -->
+          <mappings>
+            <mapping>
+              <directory>/opt/opennms</directory>
+              <dependency>
+                <includes>
+                  <include>org.opennms.assemblies:ncs-assembly:ncs-assembly:tar.gz</include>
+                </includes>
+              </dependency>
+            </mapping>
+          </mappings>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+  <dependencies>
+    <dependency>
+      <groupId>org.opennms.assemblies</groupId>
+      <artifactId>ncs-assembly</artifactId>
+      <version>${project.version}</version>
+      <classifier>ncs-assembly</classifier>
+      <type>tar.gz</type>
+    </dependency>
+  </dependencies>
+</project>
