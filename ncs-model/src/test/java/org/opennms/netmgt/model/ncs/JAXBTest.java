@@ -6,6 +6,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URL;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -160,14 +161,13 @@ public class JAXBTest {
 		System.err.println(result);
 		
 		// unmarshall the generated XML
-
-		File xsd = new File("target/xsds/ncs-model.xsd");
-		assertTrue(xsd.exists());
-		assertTrue(xsd.canRead());
+		
+		URL xsd = getClass().getResource("/ncs-model.xsd");
+		
+		assertNotNull(xsd);
 		
 		SchemaFactory schemaFactory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
 		Schema schema = schemaFactory.newSchema(xsd);
-		
 		
 		Unmarshaller unmarshaller = context.createUnmarshaller();
 		unmarshaller.setSchema(schema);
