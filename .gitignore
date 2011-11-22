@@ -9,5 +9,4 @@ target
 .settings
 .springBeans
 .DS_Store
-META-INF
 build.properties

@@ -99,7 +99,7 @@ public abstract class AbstractSpringJerseyRestTestCase {
         setServletContext(new MockServletContext("file:src/main/webapp"));
 
         getServletContext().addInitParameter("contextConfigLocation",
-                "file:src/test/resources/META-INF/opennms/component-service.xml");
+                "file:src/main/resources/META-INF/opennms/component-service.xml");
 
 
         getServletContext().addInitParameter("parentContextKey", "testDaoContext");
