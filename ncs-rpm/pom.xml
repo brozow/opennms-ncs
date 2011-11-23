@@ -51,15 +51,22 @@
         <configuration>
           <copyright>2011, The OpenNMS Group, Inc.</copyright>
           <group>Application/System</group>
-          <prefix>/opt/opennms</prefix>
+          <prefix>/var/opennms</prefix>
           <requires>
             <require>opennms-core &gt;= 1.9.94-0</require>
           </requires>
+          <prefix>/opt/opennms/share</prefix>
           <mappings>
             <mapping>
-              <directory>/opt/opennms</directory>
+              <directory>/opt/opennms/lib</directory>
               <sources>
-                <source><location>${project.build.directory}/files</location></source>
+                <source><location>${project.build.directory}/files/lib</location></source>
+              </sources>
+            </mapping>
+            <mapping>
+              <directory>/var/opennms</directory>
+              <sources>
+                <source><location>${project.build.directory}/files/share</location></source>
               </sources>
             </mapping>
           </mappings>
