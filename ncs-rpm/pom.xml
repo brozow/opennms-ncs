@@ -8,32 +8,59 @@
   <groupId>org.opennms.ncs</groupId>
   <artifactId>ncs-rpm</artifactId>
   <name>OpenNMS NCS RPM Package</name>
+  <packaging>rpm</packaging>
   <build>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-assembly</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/files</outputDirectory>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.opennms.assemblies</groupId>
+                  <artifactId>ncs-assembly</artifactId>
+                  <version>${project.version}</version>
+                  <classifier>ncs-assembly</classifier>
+                  <type>tar.gz</type>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>rpm-maven-plugin</artifactId>
         <version>2.1-alpha-1</version>
+        <extensions>true</extensions>
+        <!--
         <executions>
           <execution>
             <goals><goal>rpm</goal></goals>
           </execution>
         </executions>
+        -->
         <configuration>
           <copyright>2011, The OpenNMS Group, Inc.</copyright>
           <group>Application/System</group>
           <prefix>/opt/opennms</prefix>
-          <!-- <defineStatements>
-            <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
-          </defineStatements> -->
+          <requires>
+            <require>opennms-core &gt;= 1.9.94-0</require>
+          </requires>
           <mappings>
             <mapping>
               <directory>/opt/opennms</directory>
-              <dependency>
-                <includes>
-                  <include>org.opennms.assemblies:ncs-assembly:ncs-assembly:tar.gz</include>
-                </includes>
-              </dependency>
+              <sources>
+                <source><location>${project.build.directory}/files</location></source>
+              </sources>
             </mapping>
           </mappings>
         </configuration>

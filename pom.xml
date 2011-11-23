@@ -9,6 +9,18 @@
   <modules>
     <module>ncs-model</module>
     <module>ncs-persistence</module>
+    <module>ncs-assembly</module>
   </modules>
+  <profiles>
+    <profile>
+      <id>rpm</id>
+      <activation>
+        <property><name>rpm</name><value>true</value></property>
+      </activation>
+      <modules>
+        <module>ncs-rpm</module>
+      </modules>
+    </profile>
+  </profiles>
 
 </project>
