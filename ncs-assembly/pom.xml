@@ -36,6 +36,12 @@
     </dependency>
     <dependency>
       <groupId>org.opennms.ncs</groupId>
+      <artifactId>ncs-model</artifactId>
+      <version>${project.version}</version>
+      <classifier>xsds</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.opennms.ncs</groupId>
       <artifactId>ncs-persistence</artifactId>
       <version>${project.version}</version>
     </dependency>
