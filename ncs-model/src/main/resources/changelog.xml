@@ -67,19 +67,19 @@
 			
 			<column name="version" type="integer" />
 			
-			<colunm name="name" type="varchar(255)" />
+			<column name="name" type="varchar(255)" />
 
 			<column name="type" type="varchar(255)" />
-			<column name="foreignSource" type="varchar(255)" />
-			<column name="foreignId" type="varchar(255)" />
+			<column name="foreignsource" type="varchar(255)" />
+			<column name="foreignid" type="varchar(255)" />
 
 			<column name="depsrequired" type="varchar(12)" />
 			
-			<column name="nodeForeignSource" type="varchar(64)" />
-			<column name="nodeForeignId" type="varchar(64)" />
+			<column name="nodeforeignsource" type="varchar(64)" />
+			<column name="nodeforeignid" type="varchar(64)" />
 
-			<column name="upEventUei" type="varchar(255)"/>
-			<column name="downEventUei" type="varchar(255)"/>
+			<column name="upeventuei" type="varchar(255)"/>
+			<column name="downeventuei" type="varchar(255)"/>
 			
 		</createTable>
 		
