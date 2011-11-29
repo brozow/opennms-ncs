@@ -39,7 +39,7 @@ import org.opennms.netmgt.xml.event.Event;
 public class DependencyRulesTest extends CorrelationRulesTestCase {
     
     @Test
-    public void testDepenencyRules() throws Exception {
+    public void testDependencyRules() throws Exception {
         getAnticipator().reset();
 		
 		anticipate( createInitializedEvent( 1, 1 ) );

@@ -48,6 +48,9 @@ import org.springframework.test.context.ContextConfiguration;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations={
+		"classpath:META-INF/opennms/applicationContext-datasource.xml",
+		"classpath:META-INF/opennms/applicationContext-testDao.xml",
+		"classpath*:META-INF/opennms/component-dao.xml",
         "classpath:META-INF/opennms/applicationContext-daemon.xml",
         "classpath:META-INF/opennms/mockEventIpcManager.xml",
         "classpath:META-INF/opennms/correlation-engine.xml",

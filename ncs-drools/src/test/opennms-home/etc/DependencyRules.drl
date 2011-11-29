@@ -16,6 +16,8 @@ import org.opennms.netmgt.capsd.EventUtils;
 import org.drools.spi.KnowledgeHelper;
 
 global org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine engine;
+global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationService;
+
 
 declare Initialized
 	initialized : boolean
@@ -27,6 +29,7 @@ when
 	not Initialized()
 then
 	println( "Initializing ExternalTypes Knowledgedbase!!!" );
+	println( "CorrelationService = " + correlationService );
 	
 	// Set up nodes and edges for dependency graph
 	

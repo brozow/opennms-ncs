@@ -56,6 +56,13 @@
     </plugins>
   </build>
   <dependencies>
+  
+    <dependency>
+      <groupId>org.opennms.ncs</groupId>
+      <artifactId>ncs-persistence</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.opennms</groupId>
       <artifactId>drools-correlation-engine</artifactId>
@@ -90,6 +97,13 @@
     <dependency>
       <groupId>org.opennms</groupId>
       <artifactId>opennms-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.opennms.ncs</groupId>
+      <artifactId>ncs-test</artifactId>
+      <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     
