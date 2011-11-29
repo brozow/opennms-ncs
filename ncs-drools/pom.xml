@@ -37,6 +37,7 @@
     <version>1.9.94-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
+  <groupId>org.opennms.ncs</groupId>
   <artifactId>ncs-drools</artifactId>
   <name>OpenNMS NCS Correlation Rules</name>
   <url>http://maven.apache.org</url>
