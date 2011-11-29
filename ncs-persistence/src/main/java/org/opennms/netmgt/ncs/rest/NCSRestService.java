@@ -81,7 +81,7 @@ public class NCSRestService  {
     		throw new IllegalStateException("components is null");
     	}
     	
-    	NCSComponent component = m_componentRepo.findByForeignIdentity(type, foreignSource, foreignId);
+    	NCSComponent component = m_componentRepo.findByTypeAndForeignIdentity(type, foreignSource, foreignId);
     	
     	if (component == null) {
     		throw new WebApplicationException(Status.BAD_REQUEST);
