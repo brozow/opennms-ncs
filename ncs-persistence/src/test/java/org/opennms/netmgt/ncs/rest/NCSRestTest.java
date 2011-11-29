@@ -5,10 +5,11 @@ import static org.junit.Assert.*;
 import java.io.StringReader;
 import java.util.Properties;
 
-import org.apache.log4j.BasicConfigurator;
+//import org.apache.log4j.BasicConfigurator;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 
@@ -17,7 +18,7 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 	@BeforeClass
 	public static void setupLogging()
 	{
-		BasicConfigurator.configure();
+		//BasicConfigurator.configure();
 	}
 	
 	private static final String serviceXML = "" +
@@ -87,6 +88,7 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 
 	
 	@Test
+	@Ignore("Just used to determine the necessary DDL")
 	public void generateDDL() throws Exception {
 		String config = 
 		"hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect\n" + 
@@ -105,9 +107,6 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 		configuration.setProperties(props);
 		configuration.addAnnotatedClass(NCSComponent.class);
 		
-
-
-		
 		SchemaExport se = new SchemaExport( configuration );
 		se.setFormat( true );
 
@@ -118,16 +117,13 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 	@Test
 	public void testPostAService() throws Exception {
 		
-		
-		
 		sendPost("/NCS", serviceXML);
 		
 		String url = "/NCS/ServiceElementComponent/NA-SvcElemComp:9876%3Avcid(50)";		
 		// Testing GET Collection
 		String xml = sendRequest(GET, url, 200);
 		
-		System.err.println(xml);
-		//assertTrue(xml.contains("Darwin TestMachine 9.4.0 Darwin Kernel Version 9.4.0"));
+		assertTrue(xml.contains("jnxVpnPwVpnName"));
 	}
 
 	@Test
@@ -137,9 +133,8 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 		String url = "/NCS/Service/hello:world";
 
 		// Testing GET Collection
-		String xml = sendRequest(GET, url, 400);
+		sendRequest(GET, url, 400);
 		
-		System.err.println(xml);
 		//assertTrue(xml.contains("Darwin TestMachine 9.4.0 Darwin Kernel Version 9.4.0"));
 
 	}
