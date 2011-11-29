@@ -8,7 +8,6 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
-import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
@@ -20,6 +19,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToMany;
 import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Version;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -33,7 +33,8 @@ import org.hibernate.annotations.CollectionOfElements;
 import org.hibernate.annotations.MapKey;
 
 
-@Entity(name="ncscomponent")
+@Entity
+@Table(name="ncscomponent")
 @Inheritance(strategy=InheritanceType.SINGLE_TABLE)
 @XmlRootElement(name="component")
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -46,13 +47,12 @@ public class NCSComponent {
 	@Embeddable
 	public static class NodeIdentification {
 		@XmlAttribute(name="foreignSource", required=true)
-		@Column(name = "nodeForeignSource")
 		private String m_foreignSource;
 		
 	    @XmlAttribute(name="foreignId", required=true)
-		@Column(name = "nodeForeignId")
 	    private String m_foreignId;
 	    
+		@Column(name = "nodeForeignSource")
 		public String getForeignSource() {
 			return m_foreignSource;
 		}
@@ -61,6 +61,7 @@ public class NCSComponent {
 			m_foreignSource = foreignSource;
 		}
 
+		@Column(name = "nodeForeignId")
 		public String getForeignId() {
 			return m_foreignId;
 		}
@@ -72,61 +73,40 @@ public class NCSComponent {
 	    	    
 	}
 	
-    @Id
-    @Column(name="id", nullable=false)
-    @SequenceGenerator(name="opennmsSequence", sequenceName="opennmsNxtId")
-    @GeneratedValue(generator="opennmsSequence")
     @XmlElement(name="id")
     private Long m_id;
 
-    @Version
-    @Column(name = "version")
     @XmlTransient
     private Integer m_version;
     
-    @Column(name = "foreignSource")
     @XmlAttribute(name="foreignSource", required=true)
     private String m_foreignSource;
     
-    @Column(name = "foreignId")
     @XmlAttribute(name="foreignId", required=true)
     private String m_foreignId;
     
-    @Column(name = "type")
     @XmlAttribute(name="type", required=true)
     private String m_type;
     
-    @Column(name = "name")
     @XmlElement(name="name")
     private String m_name;
     
     @XmlElement(name="node")
-    @Embedded
     private NodeIdentification m_nodeIdentification;
 
     @XmlElement(name="upEventUei")
-    @Column(name="upEventUei")
     private String m_upEventUei;
     
     @XmlElement(name="downEventUei")
-    @Column(name="downEventUei")
     private String m_downEventUei;
     
-    @Enumerated(EnumType.STRING)
-    @Column(name = "depsRequired")
     @XmlElement(name="dependenciesRequired", required=false, defaultValue="ALL")
     private DependencyRequirements m_dependenciesRequired;
     
-    @CollectionOfElements
-    @JoinTable(name="ncs_attributes")
-    @MapKey(columns=@Column(name="key"))
-    @Column(name="value", nullable=false)
     @XmlElement(name = "attributes", required = false)
     @XmlJavaTypeAdapter(JAXBMapAdapter.class)
     private Map<String, String> m_attributes = new LinkedHashMap<String, String>();
 
-    @ManyToMany(cascade=CascadeType.ALL)
-    @JoinTable(name="subcomponents", joinColumns = { @JoinColumn(name="component_id") }, inverseJoinColumns = { @JoinColumn(name="subcomponent_id") })
     @XmlElement(name="component")
     private Set<NCSComponent> m_subcomponents = new LinkedHashSet<NCSComponent>();
     
@@ -140,6 +120,10 @@ public class NCSComponent {
     public NCSComponent() {
     }
 
+    @Id
+    @Column(name="id", nullable=false)
+    @SequenceGenerator(name="opennmsSequence", sequenceName="opennmsNxtId")
+    @GeneratedValue(generator="opennmsSequence")
     public Long getId() {
         return m_id;
     }
@@ -148,6 +132,7 @@ public class NCSComponent {
         m_id = id;
     }
 
+    @Version
     public Integer getVersion() {
         return m_version;
     }
@@ -212,6 +197,8 @@ public class NCSComponent {
 		m_downEventUei = downEventUei;
 	}
 	
+    @Enumerated(EnumType.STRING)
+    @Column(name = "depsRequired")
 	public DependencyRequirements getDependenciesRequired() {
 		return m_dependenciesRequired;
 	}
@@ -220,6 +207,8 @@ public class NCSComponent {
 		m_dependenciesRequired = dependenciesRequired;
 	}
 
+    @ManyToMany(cascade=CascadeType.ALL)
+    @JoinTable(name="subcomponents", joinColumns = { @JoinColumn(name="component_id") }, inverseJoinColumns = { @JoinColumn(name="subcomponent_id") })
 	public Set<NCSComponent> getSubcomponents() {
 		return m_subcomponents;
 	}
@@ -236,9 +225,17 @@ public class NCSComponent {
 		getSubcomponents().remove(subComponent);
 	}
 	
+    @CollectionOfElements
+    @JoinTable(name="ncs_attributes")
+    @MapKey(columns=@Column(name="key"))
+    @Column(name="value", nullable=false)
 	public Map<String, String> getAttributes() {
 		return m_attributes;
 	}
+    
+    public void setAttributes(Map<String, String> attributes) {
+    	m_attributes = attributes;
+    }
 	
 	public void setAttribute(String key, String value) {
 		m_attributes.put(key, value);

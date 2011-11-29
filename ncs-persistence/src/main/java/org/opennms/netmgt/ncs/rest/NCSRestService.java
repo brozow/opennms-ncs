@@ -32,9 +32,12 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.opennms.netmgt.model.ncs.NCSBuilder;
 import org.opennms.netmgt.model.ncs.NCSComponent;
@@ -57,7 +60,7 @@ import com.sun.jersey.spi.resource.PerRequest;
 @Component
 @PerRequest
 @Scope("prototype")
-@Path("ncs")
+@Path("NCS")
 @Transactional
 public class NCSRestService  {
 	
@@ -73,61 +76,20 @@ public class NCSRestService  {
      */
     @GET
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON})
-    public NCSComponent getComponents() {
+    @Path("{type}/{foreignSource}:{foreignId}")
+    public NCSComponent getComponent(@PathParam("type") String type, @PathParam("foreignSource") String foreignSource, @PathParam("foreignId") String foreignId) {
     	
     	if (m_componentRepo == null) {
     		throw new IllegalStateException("components is null");
     	}
     	
-		NCSComponent svc = new NCSBuilder("Service", "NA-Service", "123")
-		.setName("CokeP2P")
-		.pushComponent("ServiceElement", "NA-ServiceElement", "8765:1234")
-			.setName("PE1:ge-1/0/2")
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:ge-1/0/2.50")
-				.setName("ge-1/0/2.50")
-				.pushComponent("PhysicalInterface", "NA-PhysIfs", "8765:ifIndex-1")
-					.setName("ge-1/0/2")
-				.popComponent()
-			.popComponent()
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:vcid(50)")
-				.setName("PE1:vcid(50)")
-				.setAttribute("jnxVpnPwVpnType", "5")
-				.setAttribute("jnxVpnPwVpnName", "ge-1/0/2.2")
-				.setDependenciesRequired(DependencyRequirements.ANY)
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:LSP-1234")
-					.setName("lspA-PE1-PE2")
-				.popComponent()
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:LSP-4321")
-					.setName("lspB-PE1-PE2")
-				.popComponent()
-			.popComponent()
-		.popComponent()
-		.pushComponent("ServiceElement", "NA-ServiceElement", "9876:4321")
-			.setName("PE2:ge-3/1/4")
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:ge-3/1/4.50")
-				.setName("ge-3/1/4.50")
-				.pushComponent("PhysicalInterface", "NA-PhysIfs", "9876:ifIndex-3")
-					.setName("ge-3/1/4")
-				.popComponent()
-			.popComponent()
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:vcid(50)")
-				.setName("PE2:vcid(50)")
-				.setAttribute("jnxVpnPwVpnType", "5")
-				.setAttribute("jnxVpnPwVpnName", "ge-3/1/4.2")
-				.setDependenciesRequired(DependencyRequirements.ANY)
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:LSP-1234")
-					.setName("lspA-PE2-PE1")
-				.popComponent()
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:LSP-4321")
-					.setName("lspB-PE2-PE1")
-				.popComponent()
-			.popComponent()
-		.popComponent()
-		.get();
+    	NCSComponent component = m_componentRepo.findByForeignIdentity(type, foreignSource, foreignId);
     	
-    	m_componentRepo.save(svc);
+    	if (component == null) {
+    		throw new WebApplicationException(Status.BAD_REQUEST);
+    	}
     	
-		return svc;
+    	return component;
     }
     
     @POST

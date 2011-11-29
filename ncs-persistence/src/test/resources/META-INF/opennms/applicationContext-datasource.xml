@@ -9,8 +9,15 @@
 		http://xmlns.opennms.org/xsd/spring/onms-osgi http://xmlns.opennms.org/xsd/spring/onms-osgi.xsd		
 	">
 
+<!-- --> 
 	<jdbc:embedded-database id="dataSource" />
-
+<!-- -->
+ <!-- 
+	<bean name="dataSource" class="org.postgresql.ds.PGSimpleDataSource">
+	  <property name="databaseName" value="ncs" />
+	  <property name="user" value="opennms" />
+	</bean>
+ -->	
 	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
       <property name="dataSource" ref="dataSource" />
     </bean>
