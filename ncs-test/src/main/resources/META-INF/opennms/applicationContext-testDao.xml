@@ -52,11 +52,4 @@
     <property name="transactionManager" ref="transactionManager" />
   </bean>
   
-  <bean id="ncsComponentRepository" class="org.opennms.netmgt.ncs.persistence.NCSComponentDao">
-    <property name="sessionFactory" ref="sessionFactory" />
-  </bean>
-  
-  
-
-  
 </beans>

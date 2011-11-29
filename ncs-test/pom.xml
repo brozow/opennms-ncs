@@ -6,14 +6,9 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.opennms.ncs</groupId>
-  <artifactId>ncs-persistence</artifactId>
+  <artifactId>ncs-test</artifactId>
   <name>OpenNMS NCS Persistence</name>
   <dependencies>
-    <dependency>
-      <groupId>org.opennms.ncs</groupId>
-      <artifactId>ncs-model</artifactId>
-      <version>${project.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.opennms</groupId>
       <artifactId>opennms-dao</artifactId>
@@ -32,18 +27,6 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.opennms.dependencies</groupId>
-      <artifactId>jersey-dependencies</artifactId>
-      <type>pom</type>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.opennms.dependencies</groupId>
-      <artifactId>servlet-dependencies</artifactId>
-      <scope>provided</scope>
-      <type>pom</type>
-    </dependency>
-    <dependency>
       <groupId>org.opennms.core</groupId>
       <artifactId>org.opennms.core.soa</artifactId>
       <scope>provided</scope>
@@ -54,15 +37,13 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
+      <groupId>hsqldb</groupId>
+      <artifactId>hsqldb</artifactId>
+      <version>1.8.0.10</version>
     </dependency>
     <dependency>
-      <groupId>org.opennms.ncs</groupId>
-      <artifactId>ncs-test</artifactId>
-      <version>${project.version}</version>
-      <scope>test</scope>
+      <groupId>postgresql</groupId>
+      <artifactId>postgresql</artifactId>
     </dependency>
   </dependencies>
   
