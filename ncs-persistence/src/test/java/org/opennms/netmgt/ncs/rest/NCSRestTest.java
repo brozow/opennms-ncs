@@ -131,13 +131,13 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 	}
 
 	@Test
-	public void testGetAService() throws Exception {
+	public void testGetANonExistingService() throws Exception {
 		
-
+		// This service should not exist
 		String url = "/NCS/Service/hello:world";
 
 		// Testing GET Collection
-		String xml = sendRequest(GET, url, 200);
+		String xml = sendRequest(GET, url, 400);
 		
 		System.err.println(xml);
 		//assertTrue(xml.contains("Darwin TestMachine 9.4.0 Darwin Kernel Version 9.4.0"));
