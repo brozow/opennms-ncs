@@ -9,6 +9,7 @@
   <modules>
     <module>ncs-model</module>
     <module>ncs-persistence</module>
+    <module>ncs-drools</module>
     <module>ncs-assembly</module>
   </modules>
   <profiles>
