@@ -28,6 +28,8 @@
 
 package org.opennms.netmgt.ncs.persistence;
 
+import java.util.List;
+
 import org.opennms.netmgt.dao.hibernate.AbstractDaoHibernate;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
@@ -41,6 +43,11 @@ public class NCSComponentDao extends AbstractDaoHibernate<NCSComponent, Long> im
 	@Override
 	public NCSComponent findByTypeAndForeignIdentity(String type, String foreignSource, String foreignId) {
 		return findUnique("from NCSComponent as ncs where ncs.type = ? and ncs.foreignSource = ? and ncs.foreignId = ?", type, foreignSource, foreignId);
+	}
+
+	@Override
+	public List<NCSComponent> findComponentsThatDependOn(NCSComponent component) {
+		return find("from NCSComponent as ncs where ? in elements(ncs.subcomponents)", component);
 	}
     
 

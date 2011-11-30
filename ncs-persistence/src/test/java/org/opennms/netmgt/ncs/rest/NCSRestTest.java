@@ -127,6 +127,24 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 	}
 
 	@Test
+	public void testDeleteAComponent() throws Exception {
+		
+		sendPost("/NCS", serviceXML);
+		
+		String url = "/NCS/ServiceElementComponent/NA-SvcElemComp:9876%3Avcid(50)";		
+		// Testing GET Collection
+		String xml = sendRequest(GET, url, 200);
+		
+		assertTrue(xml.contains("jnxVpnPwVpnName"));
+		
+		sendRequest(DELETE, url, 200);
+		
+		sendRequest(GET, url, 400);
+		
+		sendRequest(GET, "/NCS/Service/NA-Service:123", 200);
+		
+	}
+	@Test
 	public void testGetANonExistingService() throws Exception {
 		
 		// This service should not exist

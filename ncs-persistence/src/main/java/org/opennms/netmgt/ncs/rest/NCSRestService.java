@@ -28,7 +28,10 @@
 
 package org.opennms.netmgt.ncs.rest;
 
+import java.util.List;
+
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -93,11 +96,35 @@ public class NCSRestService  {
     @POST
     @Consumes(MediaType.APPLICATION_XML)
     public Response addComponent(NCSComponent component) {
-        s_log.debug("addComponent: Adding component " + component);
+        s_log.info("addComponent: Adding component " + component);
         m_componentRepo.save(component);
         return Response.ok(component).build();
     }
 
+
+    @DELETE
+    @Path("{type}/{foreignSource}:{foreignId}")
+    public Response deleteComponent(@PathParam("type") String type, @PathParam("foreignSource") String foreignSource, @PathParam("foreignId") String foreignId) {
+        s_log.info(String.format("deleteComponent: Deleting component of type %s and foreignIdentity %s:%s", type, foreignSource, foreignId));
+
+    	NCSComponent component = m_componentRepo.findByTypeAndForeignIdentity(type, foreignSource, foreignId);
+    	
+    	
+    	if (component == null) {
+    		throw new WebApplicationException(Status.BAD_REQUEST);
+    	}
+    	
+    	List<NCSComponent> parents = m_componentRepo.findComponentsThatDependOn(component);
+    	
+    	for(NCSComponent parent : parents)
+    	{
+    		parent.getSubcomponents().remove(component);
+    	}
+    	
+    	m_componentRepo.delete(component);
+    	
+    	return Response.ok().build();
+    }
 
     
 }

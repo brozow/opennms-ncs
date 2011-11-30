@@ -107,6 +107,8 @@ public interface NCSComponentRepository {
     void update(NCSComponent component);
     
 	NCSComponent findByTypeAndForeignIdentity(String type, String foreignSource, String foreignId);
+	
+	List<NCSComponent> findComponentsThatDependOn(NCSComponent component);
 
 
 }
