@@ -1,6 +1,7 @@
 package org.opennms.netmgt.model.ncs;
 
 import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
+import org.opennms.netmgt.model.ncs.NCSComponent.NodeIdentification;
 
 public class NCSBuilder {
 	
@@ -26,6 +27,11 @@ public class NCSBuilder {
 		return this;
 	}
 	
+	public NCSBuilder setNodeIdentity(String nodeForeignSource, String nodeForeignId) {
+		m_component.setNodeIdentification(new NodeIdentification(nodeForeignSource, nodeForeignId));
+		return this;
+	}
+	
 	public NCSBuilder setType(String type) {
 		m_component.setType(type);
 		return this;
@@ -36,6 +42,16 @@ public class NCSBuilder {
 		return this;
 	}
 	
+	public NCSBuilder setUpEventUei(String upEventUei) {
+		m_component.setUpEventUei(upEventUei);
+		return this;
+	}
+
+	public NCSBuilder setDownEventUei(String downEventUei) {
+		m_component.setDownEventUei(downEventUei);
+		return this;
+	}
+
 	public NCSBuilder setAttribute(String key, String value) {
 		m_component.setAttribute(key, value);
 		return this;
