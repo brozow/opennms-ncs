@@ -28,6 +28,9 @@
 
 package org.opennms.netmgt.ncs.rest;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -38,9 +41,15 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
+import javax.ws.rs.core.UriInfo;
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
@@ -67,8 +76,87 @@ public class NCSRestService  {
 	
 	private static Logger s_log = LoggerFactory.getLogger(NCSRestService.class);
 	
+	@XmlRootElement(name = "components")
+	public static class ComponentList extends LinkedList<NCSComponent> {
+
+	    private static final long serialVersionUID = 8031737923157780179L;
+	    private int m_totalCount;
+
+	    /**
+	     * <p>Constructor for OnmsNodeList.</p>
+	     */
+	    public ComponentList() {
+	        super();
+	    }
+
+	    /**
+	     * <p>Constructor for OnmsNodeList.</p>
+	     *
+	     * @param c a {@link java.util.Collection} object.
+	     */
+	    public ComponentList(Collection<? extends NCSComponent> c) {
+	        super(c);
+	    }
+
+	    /**
+	     * <p>getNodes</p>
+	     *
+	     * @return a {@link java.util.List} object.
+	     */
+	    @XmlElement(name = "component")
+	    public List<NCSComponent> getComponents() {
+	        return this;
+	    }
+
+	    /**
+	     * <p>setNodes</p>
+	     *
+	     * @param components a {@link java.util.List} object.
+	     */
+	    public void setComponents(List<NCSComponent> components) {
+	        clear();
+	        addAll(components);
+	    }
+
+	    /**
+	     * <p>getCount</p>
+	     *
+	     * @return a {@link java.lang.Integer} object.
+	     */
+	    @XmlAttribute(name="count")
+	    public int getCount() {
+	        return this.size();
+	    }
+
+	    // The property has a getter "" but no setter. For unmarshalling, please define setters.
+	    public void setCount(final int count) {
+	    }
+
+	    /**
+	     * <p>getTotalCount</p>
+	     *
+	     * @return a int.
+	     */
+	    @XmlAttribute(name="totalCount")
+	    public int getTotalCount() {
+	        return m_totalCount;
+	    }
+	    
+	    /**
+	     * <p>setTotalCount</p>
+	     *
+	     * @param count a int.
+	     */
+	    public void setTotalCount(int count) {
+	        m_totalCount = count;
+	    }
+	}
+	
 	@Autowired
 	NCSComponentRepository m_componentRepo;
+	
+    @Context 
+    UriInfo m_uriInfo;
     
     /**
      * <p>getNodes</p>
@@ -125,6 +213,16 @@ public class NCSRestService  {
     	
     	return Response.ok().build();
     }
-
+    
+    @GET
+    @Path("attributes")
+    public ComponentList getComponentsByAttributes() {
+    	
+    	List<NCSComponent> components = m_componentRepo.findComponentsWithAttribute("jnxVpnPwVpnName", "ge-3/1/4.2");
+    	
+    	return new ComponentList(components);
+    	
+    	
+    }
     
 }

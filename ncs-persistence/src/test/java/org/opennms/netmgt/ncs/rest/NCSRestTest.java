@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.util.Properties;
 
 //import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.BasicConfigurator;
 import org.hibernate.cfg.AnnotationConfiguration;
 import org.hibernate.tool.hbm2ddl.SchemaExport;
 import org.junit.BeforeClass;
@@ -18,7 +19,7 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 	@BeforeClass
 	public static void setupLogging()
 	{
-		//BasicConfigurator.configure();
+		BasicConfigurator.configure();
 	}
 	
 	private static final String serviceXML = "" +
@@ -144,6 +145,7 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 		sendRequest(GET, "/NCS/Service/NA-Service:123", 200);
 		
 	}
+	
 	@Test
 	public void testGetANonExistingService() throws Exception {
 		
@@ -155,6 +157,18 @@ public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 		
 		//assertTrue(xml.contains("Darwin TestMachine 9.4.0 Darwin Kernel Version 9.4.0"));
 
+	}
+	
+	@Test
+	public void testFindAServiceByAttribute() throws Exception {
+		
+		sendPost("/NCS", serviceXML);
+		
+		String url = "/NCS/attributes";
+		// Testing GET Collection
+		String xml = sendRequest(GET, url, 200);
+		
+		assertTrue(xml.contains("jnxVpnPwVpnName"));
 	}
 
 }

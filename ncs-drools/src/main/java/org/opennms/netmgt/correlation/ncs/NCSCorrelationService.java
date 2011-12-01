@@ -8,4 +8,6 @@ public interface NCSCorrelationService {
 	
 	List<NCSComponent> findComponentsThatDependOn(Long componentId);
 
+	
+
 }

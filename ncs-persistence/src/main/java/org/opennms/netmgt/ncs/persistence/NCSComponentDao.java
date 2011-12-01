@@ -49,6 +49,15 @@ public class NCSComponentDao extends AbstractDaoHibernate<NCSComponent, Long> im
 	public List<NCSComponent> findComponentsThatDependOn(NCSComponent component) {
 		return find("from NCSComponent as ncs where ? in elements(ncs.subcomponents)", component);
 	}
+
+	@Override
+	public List<NCSComponent> findComponentsWithAttribute(String attrKey, String attrValue) {
+
+		return find("from NCSComponent as ncs where ncs.attributes[?] = ?", attrKey, attrValue);
+		
+	}
+	
+	
     
 
 }
