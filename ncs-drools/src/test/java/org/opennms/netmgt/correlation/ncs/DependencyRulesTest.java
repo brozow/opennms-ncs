@@ -30,13 +30,107 @@ package org.opennms.netmgt.correlation.ncs;
 
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.opennms.netmgt.EventConstants;
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
 import org.opennms.netmgt.model.events.EventBuilder;
+import org.opennms.netmgt.model.ncs.NCSBuilder;
+import org.opennms.netmgt.model.ncs.NCSComponent;
+import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
+import org.opennms.netmgt.model.ncs.NCSComponentRepository;
 import org.opennms.netmgt.xml.event.Event;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class DependencyRulesTest extends CorrelationRulesTestCase {
+	
+	@Autowired
+	NCSComponentRepository m_repository;
+	
+	@Before
+	public void setUp() {
+		
+		NCSComponent svc = new NCSBuilder("Service", "NA-Service", "123")
+		.setName("CokeP2P")
+		.pushComponent("ServiceElement", "NA-ServiceElement", "8765")
+			.setName("PE1:SE1")
+			.setNodeIdentity("space", "1111-PE1")
+			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnIf")
+				.setName("jnxVpnIf")
+				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
+				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
+				.setAttribute("jnxVpnIfType", "5")
+				.setAttribute("jnxVpnIfName", "ge-1/0/2.50")
+				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:link")
+					.setName("link")
+					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
+					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
+					.setAttribute("linkName", "ge-1/0/2")
+				.popComponent()
+			.popComponent()
+			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)")
+				.setName("jnxVpnPw-vcid(50)")
+				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
+				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
+				.setAttribute("jnxVpnPwType", "5")
+				.setAttribute("jnxVpnPwName", "ge-1/0/2.50")
+				.setDependenciesRequired(DependencyRequirements.ANY)
+				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2")
+					.setName("lspA-PE1-PE2")
+					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+					.setAttribute("mplsLspName", "lspA-PE1-PE2")
+				.popComponent()
+				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspB-PE1-PE2")
+					.setName("lspB-PE1-PE2")
+					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+					.setAttribute("mplsLspName", "lspB-PE1-PE2")
+				.popComponent()
+			.popComponent()
+		.popComponent()
+		.pushComponent("ServiceElement", "NA-ServiceElement", "9876")
+			.setName("PE2:SE1")
+			.setNodeIdentity("space", "2222-PE2")
+			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnIf")
+				.setName("jnxVpnIf")
+				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
+				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
+				.setAttribute("jnxVpnIfType", "5")
+				.setAttribute("jnxVpnIfName", "ge-3/1/4.50")
+				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:link")
+					.setName("link")
+					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
+					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
+					.setAttribute("linkName", "ge-3/1/4")
+				.popComponent()
+			.popComponent()
+			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)")
+				.setName("jnxVpnPw-vcid(50)")
+				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
+				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
+				.setAttribute("jnxVpnPwType", "5")
+				.setAttribute("jnxVpnPwName", "ge-3/1/4.50")
+				.setDependenciesRequired(DependencyRequirements.ANY)
+				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1")
+					.setName("lspA-PE2-PE1")
+					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+					.setAttribute("mplsLspName", "lspA-PE2-PE1")
+				.popComponent()
+				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspB-PE2-PE1")
+					.setName("lspB-PE2-PE1")
+					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+					.setAttribute("mplsLspName", "lspB-PE2-PE1")
+				.popComponent()
+			.popComponent()
+		.popComponent()
+		.get();
+		
+		m_repository.save(svc);
+
+	}
     
     @Test
     public void testDependencyRules() throws Exception {
