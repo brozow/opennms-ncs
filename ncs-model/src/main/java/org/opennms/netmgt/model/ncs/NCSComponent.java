@@ -52,6 +52,14 @@ public class NCSComponent {
 	    @XmlAttribute(name="foreignId", required=true)
 	    private String m_foreignId;
 	    
+	    public NodeIdentification() {
+		}
+	    
+	    public NodeIdentification(String nodeForeignSource, String nodeForeignId) {
+	    	m_foreignSource = nodeForeignSource;
+	    	m_foreignId = nodeForeignId;
+	    }
+	    
 		@Column(name = "nodeForeignSource")
 		public String getForeignSource() {
 			return m_foreignSource;
