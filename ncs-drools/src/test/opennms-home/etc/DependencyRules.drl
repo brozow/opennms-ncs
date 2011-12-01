@@ -69,7 +69,7 @@ then
 	
 	insert( new Initialized() );
 		
-	sendInitEvent( engine );
+	//sendInitEvent( engine );
 end
 
 rule "services depends on icmp"
@@ -87,12 +87,13 @@ end
 rule "service down"
 	salience 100
 when
-	$e : Event( uei matches ".*nodeLostService", $nodeid : nodeid, $addr : interfaceAddress, $svc : service == "ICMP" )
-	$s : Service( node == $nodeid, addr == $addr, svc == $svc ) 
-//	not ( Impacted( target == $s ) )
+	$e : Event( uei matches ".*jnxPwDown" )
 then
-	println( "Service " + $s + " is down!" );
-	insert( new Impacted( $s, $e ) );
+	List<NCSComponent> list = componentService.findComponentsByEventParameters(e, "jnxPwType", "jnxPwName");
+	for ( NCSComponent c : list ) {
+		println( "Component " + c + " is down!" );
+		insert( new Impacted( c, $e ) );
+	}
 end
 
 rule "service up"

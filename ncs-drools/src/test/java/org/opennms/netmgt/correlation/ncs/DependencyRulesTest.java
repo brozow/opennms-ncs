@@ -136,7 +136,8 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     public void testDependencyRules() throws Exception {
         getAnticipator().reset();
 		
-		anticipate( createInitializedEvent( 1, 1 ) );
+		/*
+        anticipate( createInitializedEvent( 1, 1 ) );
 		
 		EventBuilder bldr = new EventBuilder( "serviceImpacted", "Drools" );
 		bldr.setNodeid( 1 );
@@ -157,16 +158,18 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		bldr.addParam("CAUSE", 17 );
 		
 		anticipate( bldr.getEvent() );
+		*/
 		
 		DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
 		
-		Event event = createNodeLostServiceEvent( 1, "10.1.1.1", "ICMP" );
+		Event event = createVpnPwDownEvent( 1, "10.1.1.1", "5", "ge-3/1/4.50" );
 		event.setDbid(17);
-		System.err.println("SENDING nodeLostService EVENT!!");
+		System.err.println("SENDING VpnPwDown EVENT!!");
 		engine.correlate( event );
 		
 		getAnticipator().verifyAnticipated();
 		
+		/*
 		bldr = new EventBuilder( "serviceRestored", "Drools" );
 		bldr.setNodeid( 1 );
 		bldr.setInterface( addr( "10.1.1.1" ) );
@@ -193,8 +196,19 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		engine.correlate( event );
 		
 		getAnticipator().verifyAnticipated();
+		*/
     }
     
+	private Event createVpnPwDownEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
+		
+		return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Drools")
+				.setNodeid(nodeid)
+				.setInterface( addr( ipaddr ) )
+				.addParam("jnxVpnIfType", "5")
+				.addParam("jnxVpnIfName", "ge-1/0/2.50")
+				.getEvent();
+	}
+
 	private Event createInitializedEvent(int symptom, int cause) {
         return new EventBuilder("initialized", "Drools").getEvent();
     }
