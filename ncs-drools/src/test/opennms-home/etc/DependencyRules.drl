@@ -5,10 +5,12 @@ import function org.opennms.core.utils.InetAddressUtils.str;
 
 import java.util.Date;
 import java.net.InetAddress;
+import java.util.List;
 
 
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
 import org.opennms.netmgt.correlation.ncs.*;
+import org.opennms.netmgt.model.ncs.*;
 import org.opennms.netmgt.xml.event.Event;
 import org.opennms.netmgt.model.events.EventBuilder;
 import org.opennms.netmgt.EventConstants;
@@ -87,9 +89,9 @@ end
 rule "service down"
 	salience 100
 when
-	$e : Event( uei matches ".*jnxPwDown" )
+	$e : Event( uei matches ".*jnxVpnPwDown" )
 then
-	List<NCSComponent> list = componentService.findComponentsByEventParameters(e, "jnxPwType", "jnxPwName");
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxPwType", "jnxPwName");
 	for ( NCSComponent c : list ) {
 		println( "Component " + c + " is down!" );
 		insert( new Impacted( c, $e ) );

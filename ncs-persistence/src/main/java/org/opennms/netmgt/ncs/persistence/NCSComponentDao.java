@@ -33,6 +33,7 @@ import java.util.List;
 import org.opennms.netmgt.dao.hibernate.AbstractDaoHibernate;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
+import org.springframework.dao.DataAccessException;
 
 public class NCSComponentDao extends AbstractDaoHibernate<NCSComponent, Long> implements NCSComponentRepository {
 
@@ -52,10 +53,26 @@ public class NCSComponentDao extends AbstractDaoHibernate<NCSComponent, Long> im
 
 	@Override
 	public List<NCSComponent> findComponentsWithAttribute(String attrKey, String attrValue) {
-
 		return find("from NCSComponent as ncs where ncs.attributes[?] = ?", attrKey, attrValue);
+	}
+
+	@Override
+	public void save(NCSComponent entity) throws DataAccessException {
+		super.save(entity);
+	}
+
+	@Override
+	public void saveOrUpdate(NCSComponent entity) throws DataAccessException {
+		super.saveOrUpdate(entity);
 		
 	}
+
+	@Override
+	public List<NCSComponent> findComponentsByNodeId(int nodeid) {
+			return find("select distinct ncs from NCSComponent as ncs, OnmsNode as n where ncs.nodeIdentification.foreignSource = n.foreignSource and ncs.nodeIdentification.foreignId = n.foreignId and n.id = ?", nodeid);
+	}
+	
+	
 	
 	
     

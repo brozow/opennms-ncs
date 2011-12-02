@@ -1,52 +1,36 @@
-/*******************************************************************************
- * This file is part of OpenNMS(R).
- *
- * Copyright (C) 2007-2011 The OpenNMS Group, Inc.
- * OpenNMS(R) is Copyright (C) 1999-2011 The OpenNMS Group, Inc.
- *
- * OpenNMS(R) is a registered trademark of The OpenNMS Group, Inc.
- *
- * OpenNMS(R) is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published
- * by the Free Software Foundation, either version 3 of the License,
- * or (at your option) any later version.
- *
- * OpenNMS(R) is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with OpenNMS(R).  If not, see:
- *      http://www.gnu.org/licenses/
- *
- * For more information contact:
- *     OpenNMS(R) Licensing <license@opennms.org>
- *     http://www.opennms.org/
- *     http://www.opennms.com/
- *******************************************************************************/
+package org.opennms.netmgt.ncs.persistence;
 
-package org.opennms.netmgt.correlation.ncs;
+import static org.junit.Assert.*;
 
-import static org.opennms.core.utils.InetAddressUtils.addr;
+import java.util.List;
 
+import org.apache.log4j.BasicConfigurator;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.opennms.netmgt.EventConstants;
-import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
+import org.junit.runner.RunWith;
 import org.opennms.netmgt.dao.DistPollerDao;
 import org.opennms.netmgt.dao.NodeDao;
 import org.opennms.netmgt.model.NetworkBuilder;
 import org.opennms.netmgt.model.OnmsDistPoller;
-import org.opennms.netmgt.model.events.EventBuilder;
+import org.opennms.netmgt.model.OnmsNode;
 import org.opennms.netmgt.model.ncs.NCSBuilder;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
-import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
 
-public class DependencyRulesTest extends CorrelationRulesTestCase {
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations={
+		"classpath:META-INF/opennms/applicationContext-datasource.xml",
+		"classpath:META-INF/opennms/applicationContext-testDao.xml",
+		"classpath*:META-INF/opennms/component-dao.xml",
+})
+@Transactional
+public class NCSComponentDaoTest {
 	
 	@Autowired
 	NCSComponentRepository m_repository;
@@ -56,11 +40,18 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 	
 	@Autowired
 	NodeDao m_nodeDao;
-
+	
 	int m_pe1NodeId;
 	
 	int m_pe2NodeId;
-
+	
+	@BeforeClass
+	public static void setupLogging()
+	{
+		BasicConfigurator.configure();		
+	}
+	
+	
 	@Before
 	public void setUp() {
 		
@@ -161,131 +152,32 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		.get();
 		
 		m_repository.save(svc);
-
-	}
-    
-    @Test
-    public void testDependencyRules() throws Exception {
-        getAnticipator().reset();
 		
-		/*
-        anticipate( createInitializedEvent( 1, 1 ) );
 		
-		EventBuilder bldr = new EventBuilder( "serviceImpacted", "Drools" );
-		bldr.setNodeid( 1 );
-		bldr.setInterface( addr( "10.1.1.1" ) );
-		bldr.setService( "HTTP" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		
-		bldr = new EventBuilder( "applicationImpacted", "Drools" );
-		bldr.addParam("APP", "e-commerce" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		
-		bldr = new EventBuilder( "applicationImpacted", "Drools" );
-		bldr.addParam("APP", "hr-portal" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		*/
-		
-		DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
-		
-		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-		event.setDbid(17);
-		System.err.println("SENDING VpnPwDown EVENT!!");
-		engine.correlate( event );
-		
-		getAnticipator().verifyAnticipated();
-		
-		/*
-		bldr = new EventBuilder( "serviceRestored", "Drools" );
-		bldr.setNodeid( 1 );
-		bldr.setInterface( addr( "10.1.1.1" ) );
-		bldr.setService( "HTTP" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		
-		bldr = new EventBuilder( "applicationRestored", "Drools" );
-		bldr.addParam("APP", "e-commerce" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		
-		bldr = new EventBuilder( "applicationRestored", "Drools" );
-		bldr.addParam("APP", "hr-portal" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		
-		event = createNodeRegainedServiceEvent( 1, "10.1.1.1", "ICMP" );
-		event.setDbid(18);
-		System.err.println("SENDING nodeRegainedService EVENT!!");
-		engine.correlate( event );
-		
-		getAnticipator().verifyAnticipated();
-		*/
-    }
-    
-	private Event createVpnPwDownEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
-		
-		return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Drools")
-				.setNodeid(nodeid)
-				.setInterface( addr( ipaddr ) )
-				.addParam("jnxVpnIfType", "5")
-				.addParam("jnxVpnIfName", "ge-1/0/2.50")
-				.getEvent();
 	}
 
-	private Event createInitializedEvent(int symptom, int cause) {
-        return new EventBuilder("initialized", "Drools").getEvent();
-    }
+	@Test
+	public void testFindComponentsByNodeId() {
+		
+		assertNotNull(m_repository);
+		
+		assertFalse(0 == m_pe1NodeId);
+		assertFalse(0 == m_pe2NodeId);
+		
+		List<NCSComponent> pe1Components = m_repository.findComponentsByNodeId(m_pe1NodeId);
+		
+		assertFalse(pe1Components.isEmpty());
+		
+		NCSComponent pe1SvcElem = m_repository.findByTypeAndForeignIdentity("ServiceElement", "NA-ServiceElement", "8765");
+		
+		assertNotNull(pe1SvcElem);
+		
+		assertTrue(pe1Components.contains(pe1SvcElem));
 
-    // Currently unused
-//    private Event createRootCauseEvent(int symptom, int cause) {
-//        return new EventBuilder(createNodeEvent("rootCauseEvent", cause)).getEvent();
-//    }
-
-
-    public Event createNodeDownEvent(int nodeid) {
-        return createNodeEvent(EventConstants.NODE_DOWN_EVENT_UEI, nodeid);
-    }
-    
-    public Event createNodeUpEvent(int nodeid) {
-        return createNodeEvent(EventConstants.NODE_UP_EVENT_UEI, nodeid);
-    }
-    
-    public Event createNodeLostServiceEvent(int nodeid, String ipAddr, String svcName)
-    {
-    	return createSvcEvent("uei.opennms.org/nodes/nodeLostService", nodeid, ipAddr, svcName);
-    }
-    
-    public Event createNodeRegainedServiceEvent(int nodeid, String ipAddr, String svcName)
-    {
-    	return createSvcEvent("uei.opennms.org/nodes/nodeRegainedService", nodeid, ipAddr, svcName);
-    }
-    
-    private Event createSvcEvent(String uei, int nodeid, String ipaddr, String svcName)
-    {
-    	return new EventBuilder(uei, "Drools")
-    		.setNodeid(nodeid)
-    		.setInterface( addr( ipaddr ) )
-    		.setService( svcName )
-    		.getEvent();
-    		
-    }
-
-    private Event createNodeEvent(String uei, int nodeid) {
-        return new EventBuilder(uei, "test")
-            .setNodeid(nodeid)
-            .getEvent();
-    }
-    
-
-
+		List<NCSComponent> pe2Components = m_repository.findComponentsByNodeId(m_pe2NodeId);
+		
+		assertFalse(pe2Components.isEmpty());
+		
+	}
 
 }

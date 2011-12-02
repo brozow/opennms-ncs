@@ -113,4 +113,7 @@ public interface NCSComponentRepository {
 	List<NCSComponent> findComponentsWithAttribute(String attrKey, String attrValue);
 
 
+	List<NCSComponent> findComponentsByNodeId(int nodeid);
+
+
 }
