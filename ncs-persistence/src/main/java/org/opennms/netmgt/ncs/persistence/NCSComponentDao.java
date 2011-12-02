@@ -69,7 +69,7 @@ public class NCSComponentDao extends AbstractDaoHibernate<NCSComponent, Long> im
 
 	@Override
 	public List<NCSComponent> findComponentsByNodeId(int nodeid) {
-			return find("select distinct ncs from NCSComponent as ncs, OnmsNode as n where ncs.nodeIdentification.foreignSource = n.foreignSource and ncs.nodeIdentification.foreignId = n.foreignId and n.id = ?", nodeid);
+			return find("select distinct ncs from NCSComponent as ncs, OnmsNode as n left join fetch ncs.attributes where ncs.nodeIdentification.foreignSource = n.foreignSource and ncs.nodeIdentification.foreignId = n.foreignId and n.id = ?", nodeid);
 	}
 	
 	
