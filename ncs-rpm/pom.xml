@@ -51,6 +51,7 @@
         <configuration>
           <copyright>2011, The OpenNMS Group, Inc.</copyright>
           <group>Application/System</group>
+          <release>${release}</release>
           <prefix>/var/opennms</prefix>
           <requires>
             <require>opennms-core &gt;= 1.9.94-0</require>
