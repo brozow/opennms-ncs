@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 
 if [ -z "$OPENNMS_RELEASE" ]; then
 	OPENNMS_RELEASE=0.`date '+%Y%m%d'`.1
