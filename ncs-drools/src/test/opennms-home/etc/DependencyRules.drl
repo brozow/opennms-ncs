@@ -91,9 +91,9 @@ rule "service down"
 when
 	$e : Event( uei matches ".*jnxVpnPwDown" )
 then
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxPwType", "jnxPwName");
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwType", "jnxVpnPwName");
 	for ( NCSComponent c : list ) {
-		println( "Component " + c + " is down!" );
+		println( "Component '" + c.getName() + "' is down!" );
 		insert( new Impacted( c, $e ) );
 	}
 end

@@ -79,12 +79,14 @@ public class NCSComponentDaoTest {
 			.setNodeIdentity("space", "1111-PE1")
 			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnIf")
 				.setName("jnxVpnIf")
+				.setNodeIdentity("space", "1111-PE1")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
 				.setAttribute("jnxVpnIfType", "5")
 				.setAttribute("jnxVpnIfName", "ge-1/0/2.50")
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:link")
 					.setName("link")
+					.setNodeIdentity("space", "1111-PE1")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
 					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
 					.setAttribute("linkName", "ge-1/0/2")
@@ -92,6 +94,7 @@ public class NCSComponentDaoTest {
 			.popComponent()
 			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)")
 				.setName("jnxVpnPw-vcid(50)")
+				.setNodeIdentity("space", "1111-PE1")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
 				.setAttribute("jnxVpnPwType", "5")
@@ -99,12 +102,14 @@ public class NCSComponentDaoTest {
 				.setDependenciesRequired(DependencyRequirements.ANY)
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2")
 					.setName("lspA-PE1-PE2")
+					.setNodeIdentity("space", "1111-PE1")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
 					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
 					.setAttribute("mplsLspName", "lspA-PE1-PE2")
 				.popComponent()
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspB-PE1-PE2")
 					.setName("lspB-PE1-PE2")
+					.setNodeIdentity("space", "1111-PE1")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
 					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
 					.setAttribute("mplsLspName", "lspB-PE1-PE2")
@@ -116,12 +121,14 @@ public class NCSComponentDaoTest {
 			.setNodeIdentity("space", "2222-PE2")
 			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnIf")
 				.setName("jnxVpnIf")
+				.setNodeIdentity("space", "2222-PE2")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
 				.setAttribute("jnxVpnIfType", "5")
 				.setAttribute("jnxVpnIfName", "ge-3/1/4.50")
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:link")
 					.setName("link")
+					.setNodeIdentity("space", "2222-PE2")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
 					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
 					.setAttribute("linkName", "ge-3/1/4")
@@ -129,6 +136,7 @@ public class NCSComponentDaoTest {
 			.popComponent()
 			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)")
 				.setName("jnxVpnPw-vcid(50)")
+				.setNodeIdentity("space", "2222-PE2")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
 				.setAttribute("jnxVpnPwType", "5")
@@ -136,12 +144,14 @@ public class NCSComponentDaoTest {
 				.setDependenciesRequired(DependencyRequirements.ANY)
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1")
 					.setName("lspA-PE2-PE1")
+					.setNodeIdentity("space", "2222-PE2")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
 					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
 					.setAttribute("mplsLspName", "lspA-PE2-PE1")
 				.popComponent()
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspB-PE2-PE1")
 					.setName("lspB-PE2-PE1")
+					.setNodeIdentity("space", "2222-PE2")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
 					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
 					.setAttribute("mplsLspName", "lspB-PE2-PE1")
@@ -172,10 +182,14 @@ public class NCSComponentDaoTest {
 		assertNotNull(pe1SvcElem);
 		
 		assertTrue(pe1Components.contains(pe1SvcElem));
+		
+		assertEquals(6, pe1Components.size());
 
 		List<NCSComponent> pe2Components = m_repository.findComponentsByNodeId(m_pe2NodeId);
 		
 		assertFalse(pe2Components.isEmpty());
+		
+		assertEquals(6, pe2Components.size());
 		
 	}
 
