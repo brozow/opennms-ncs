@@ -1,24 +1,25 @@
 package org.opennms.netmgt.correlation.ncs;
 
+import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.xml.event.Event;
 
 public class Impacted {
 
-	private Object m_target;
+	private NCSComponent m_target;
 	private Event m_cause;
 	
 	public Impacted() {}
 	
-	public Impacted(Object target, Event cause)
+	public Impacted(NCSComponent target, Event cause)
 	{
 		m_target = target;
 		m_cause = cause;
 	}
 	
-	public Object getTarget() {
+	public NCSComponent getTarget() {
 		return m_target;
 	}
-	public void setTarget(Object target) {
+	public void setTarget(NCSComponent target) {
 		m_target = target;
 	}
 	public Event getCause() {

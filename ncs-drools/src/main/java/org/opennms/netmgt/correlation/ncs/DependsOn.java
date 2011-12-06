@@ -1,30 +1,32 @@
 package org.opennms.netmgt.correlation.ncs;
 
+import org.opennms.netmgt.model.ncs.NCSComponent;
+
 public class DependsOn {
-	private Object m_a;
-	private Object m_b;
+	private NCSComponent m_a;
+	private NCSComponent m_b;
 	
 	public DependsOn() {}
 	
-	public DependsOn(Object a, Object b)
+	public DependsOn(NCSComponent a, NCSComponent b)
 	{
 		m_a = a;
 		m_b = b;
 	}
 
-	public Object getA() {
+	public NCSComponent getA() {
 		return m_a;
 	}
 
-	public void setA(Object a) {
+	public void setA(NCSComponent a) {
 		m_a = a;
 	}
 
-	public Object getB() {
+	public NCSComponent getB() {
 		return m_b;
 	}
 
-	public void setB(Object b) {
+	public void setB(NCSComponent b) {
 		m_b = b;
 	}
 	

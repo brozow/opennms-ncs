@@ -177,7 +177,12 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     @Test
     public void testDependencyRules() throws Exception {
         getAnticipator().reset();
-		
+        
+
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
+        		
 		/*
         anticipate( createInitializedEvent( 1, 1 ) );
 		
@@ -204,11 +209,13 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		
 		DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
 		
+				
 		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
 		event.setDbid(17);
 		System.err.println("SENDING VpnPwDown EVENT!!");
 		engine.correlate( event );
 		
+			
 		getAnticipator().verifyAnticipated();
 		
 		/*
@@ -255,6 +262,16 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 //    private Event createRootCauseEvent(int symptom, int cause) {
 //        return new EventBuilder(createNodeEvent("rootCauseEvent", cause)).getEvent();
 //    }
+	
+	private Event createComponentImpactedEvent( String type, String foreignSource, String foreignId, int cause ) {
+        
+        return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Drools")
+        .addParam("componentType", type )
+        .addParam("componentForeignSource", foreignSource )
+        .addParam("componentForeignId", foreignId )
+        .addParam("CAUSE", cause )
+        .getEvent();
+    }
 
 
     public Event createNodeDownEvent(int nodeid) {
