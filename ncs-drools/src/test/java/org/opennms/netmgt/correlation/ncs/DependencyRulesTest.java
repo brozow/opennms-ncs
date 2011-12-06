@@ -176,47 +176,40 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     
     @Test
     public void testDependencyRules() throws Exception {
-        getAnticipator().reset();
         
-
+        // Get engine
+        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+        
+        // Antecipate down event
+        getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
         anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
-        		
-		/*
-        anticipate( createInitializedEvent( 1, 1 ) );
 		
-		EventBuilder bldr = new EventBuilder( "serviceImpacted", "Drools" );
-		bldr.setNodeid( 1 );
-		bldr.setInterface( addr( "10.1.1.1" ) );
-		bldr.setService( "HTTP" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		
-		bldr = new EventBuilder( "applicationImpacted", "Drools" );
-		bldr.addParam("APP", "e-commerce" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		
-		bldr = new EventBuilder( "applicationImpacted", "Drools" );
-		bldr.addParam("APP", "hr-portal" );
-		bldr.addParam("CAUSE", 17 );
-		
-		anticipate( bldr.getEvent() );
-		*/
-		
-		DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
-		
-				
+		// Generate down event
 		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
 		event.setDbid(17);
 		System.err.println("SENDING VpnPwDown EVENT!!");
 		engine.correlate( event );
 		
-			
+		// Check down event
 		getAnticipator().verifyAnticipated();
+		
+		// Antecipate up event
+        getAnticipator().reset();
+        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
+        anticipate(  createComponentResolvedEvent( "Service", "NA-Service", "123", 17 ) );
+        
+        // Generate up event
+        event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
+        event.setDbid(17);
+        System.err.println("SENDING VpnPwUp EVENT!!");
+        engine.correlate( event );
+        
+        // Check up event
+        getAnticipator().verifyAnticipated();
+		
 		
 		/*
 		bldr = new EventBuilder( "serviceRestored", "Drools" );
@@ -248,7 +241,9 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		*/
     }
     
-	private Event createVpnPwDownEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
+	
+
+    private Event createVpnPwDownEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
 		
 		return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Drools")
 				.setNodeid(nodeid)
@@ -258,6 +253,16 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 				.getEvent();
 	}
 
+    private Event createVpnPwUpEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
+        
+        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Drools")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("jnxVpnPwType", pwtype )
+                .addParam("jnxVpnPwName", pwname )
+                .getEvent();
+    }
+
     // Currently unused
 //    private Event createRootCauseEvent(int symptom, int cause) {
 //        return new EventBuilder(createNodeEvent("rootCauseEvent", cause)).getEvent();
@@ -266,6 +271,15 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 	private Event createComponentImpactedEvent( String type, String foreignSource, String foreignId, int cause ) {
         
         return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Drools")
+        .addParam("componentType", type )
+        .addParam("componentForeignSource", foreignSource )
+        .addParam("componentForeignId", foreignId )
+        .addParam("CAUSE", cause )
+        .getEvent();
+    }
+	
+	private Event createComponentResolvedEvent(String type, String foreignSource, String foreignId, int cause) {
+        return new EventBuilder("uei.opennms.org/internal/ncs/componentResolved", "Drools")
         .addParam("componentType", type )
         .addParam("componentForeignSource", foreignSource )
         .addParam("componentForeignId", foreignId )

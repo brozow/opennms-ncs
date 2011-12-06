@@ -12,6 +12,9 @@ import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
 import org.opennms.netmgt.correlation.ncs.*;
 import org.opennms.netmgt.model.ncs.*;
 import org.opennms.netmgt.xml.event.Event;
+import org.opennms.netmgt.xml.event.Parm;
+import org.opennms.netmgt.xml.event.Parms;
+import org.opennms.netmgt.xml.event.Value;
 import org.opennms.netmgt.model.events.EventBuilder;
 import org.opennms.netmgt.EventConstants;
 import org.opennms.netmgt.capsd.EventUtils;
@@ -43,8 +46,41 @@ then
 	for ( NCSComponent c : list ) {
 		println( "Component '" + c.getName() + "' is down!" );
 		insert( new Impacted( c, $e ) );
+		insert( new EventComponent( c, $e ) );
 		sendImpactedComponentEvent( engine, c, $e );
 	}
+end
+
+
+rule "pseudo-wire component up"
+	salience 100
+when
+	$downEvent : Event( uei matches ".*jnxVpnPwDown", $downNodeId : nodeid, $downParms : parmCollection )
+	Parm( parmName == "jnxVpnPwType", $downVpnPwTypeValue: value.content ) from $downParms
+	Parm( parmName == "jnxVpnPwName", $downVpnPwNameValue: value.content ) from $downParms
+	$upEvent : Event( uei matches ".*jnxVpnPwUp", nodeid == $downNodeId, $upParms : parmCollection )
+	Parm( parmName == "jnxVpnPwType", value.content == $downVpnPwTypeValue ) from $upParms
+	Parm( parmName == "jnxVpnPwName", value.content == $downVpnPwNameValue ) from $upParms
+	$eventComponent: EventComponent ( $c : component, event == $downEvent )
+	$impacted : Impacted( target == $c, cause == $downEvent )
+then
+	retract( $downEvent );
+	retract( $upEvent );
+	retract( $eventComponent );
+	insert( new Resolved( $downEvent, $upEvent ) );
+	println( "Resolved down event " + $downEvent );
+	println( "component up with " + $downVpnPwTypeValue + "_" + $downVpnPwNameValue );
+end
+
+rule "resolved component"
+	salience 400
+when
+	$i : Impacted( $c : target, $cause : cause )
+	$r : Resolved( cause == $cause )
+then
+	println( " Resolving Impact " + $i );
+	retract( $i ); 
+	sendResolvedComponentEvent(engine, $c, $cause);
 end
 
 /*
@@ -117,16 +153,16 @@ function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, NCSCom
 	engine.sendEvent(bldr.getEvent());
 }
 
-/*
-function void sendResolvedServiceEvent( DroolsCorrelationEngine engine, Service svc, Event e)
+
+function void sendResolvedComponentEvent( DroolsCorrelationEngine engine, NCSComponent c, Event e)
 {
-	EventBuilder bldr = new EventBuilder( "serviceRestored", "Drools" );
-	bldr.setNodeid( svc.getNode() );
-	bldr.setInterface( svc.getAddr() );
-	bldr.setService( svc.getSvc() );
+	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentResolved", "Drools" );
+	bldr.addParam("componentType", c.getType() );
+	bldr.addParam("componentForeignSource", c.getForeignSource() );
+	bldr.addParam("componentForeignId", c.getForeignId() );
 	bldr.addParam("CAUSE", e.getDbid() );
 	engine.sendEvent(bldr.getEvent());
 }
-*/
+
 
 
