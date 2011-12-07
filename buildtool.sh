@@ -8,8 +8,8 @@ if [ -z "$BRANCH" ]; then
 	exit 1
 fi
 
-TIMESTAMPFILE="$HOME/.buildtool-$BRANCH-timestamp"
-REVISIONFILE="$HOME/.buildtool-$BRANCH-revision"
+TIMESTAMPFILE="$HOME/.buildtool-ncs-$BRANCH-timestamp"
+REVISIONFILE="$HOME/.buildtool-ncs-$BRANCH-revision"
 
 print_stored_timestamp() {
 	cat "$TIMESTAMPFILE" 2>/dev/null || echo 0
