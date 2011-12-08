@@ -46,7 +46,7 @@ import org.opennms.netmgt.model.ncs.NCSComponentRepository;
 import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class DependencyRulesTest extends CorrelationRulesTestCase {
+public class AnyDependencyRulesTest extends CorrelationRulesTestCase {
 	
 	@Autowired
 	NCSComponentRepository m_repository;
@@ -182,19 +182,20 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         
         // Antecipate down event
         getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 17 ) );
+        //anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
+        //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
 		
 		// Generate down event
-		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
+		Event event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
 		event.setDbid(17);
-		System.err.println("SENDING VpnPwDown EVENT!!");
+		System.err.println("SENDING MplsLspPathDown EVENT!!");
 		engine.correlate( event );
 		
 		// Check down event
 		getAnticipator().verifyAnticipated();
 		
+		/*
 		// Antecipate up event
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
@@ -209,6 +210,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         
         // Check up event
         getAnticipator().verifyAnticipated();	
+        */
 	
     }
     
@@ -223,6 +225,17 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 				.addParam("jnxVpnPwName", pwname )
 				.getEvent();
 	}
+    
+    private Event createMplsLspPathDownEvent( int nodeid, String ipaddr, String lspname ) {
+        
+        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Drools")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("mplsLspName", lspname )
+                .getEvent();
+    }
+    
+    
 
     private Event createVpnPwUpEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
         

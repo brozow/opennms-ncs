@@ -72,6 +72,20 @@ then
 	println( "component up with " + $downVpnPwTypeValue + "_" + $downVpnPwNameValue );
 end
 
+rule "mpls lsp path component down"
+	salience 100
+when
+	$e : Event( uei matches ".*mplsLspPathDown" )
+then
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "mplsLspName");
+	for ( NCSComponent c : list ) {
+		println( "Component '" + c.getName() + "' is down!" );
+		insert( new Impacted( c, $e ) );
+		insert( new EventComponent( c, $e ) );
+		sendImpactedComponentEvent( engine, c, $e );
+	}
+end
+
 rule "resolved component"
 	salience 400
 when
@@ -83,22 +97,14 @@ then
 	sendResolvedComponentEvent(engine, $c, $cause);
 end
 
-/*
-rule "service up"
-	salience 100
-when
-	$downEvent : Event( uei matches ".*nodeLostService", $nodeid : nodeid, $addr : interfaceAddress, $svc : service == "ICMP" )
-	$upEvent : Event( uei matches ".*nodeRegainedService", nodeid ==  $nodeid, interfaceAddress == $addr, service == $svc )
-	$s : Service( node == $nodeid, addr == $addr, svc == $svc )
-	$impacted : Impacted( target == $s, cause == $downEvent )
-then
-	retract( $downEvent );
-	retract( $upEvent );
-	retract( $impacted );
-	insert( new Resolved( $downEvent, $upEvent ) );
-	println( "Resolved down event " + $downEvent );
+rule "degrade parent component"
+	salience 800
+	when
+		$i : Impacted( $b : target, $e : cause )
+		DependsOn( $a : a, b == $b, $a.dependenciesRequired == DependencyRequirements.ANY )
+	then
+		println( "Degrading parent component " + $a );	
 end
-*/
 
 rule "impacted parent component"
 	salience 400
