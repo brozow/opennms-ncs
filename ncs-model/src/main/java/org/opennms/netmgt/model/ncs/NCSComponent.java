@@ -29,6 +29,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.CollectionOfElements;
 import org.hibernate.annotations.MapKey;
 
@@ -218,6 +219,7 @@ public class NCSComponent {
     @ManyToMany(cascade=CascadeType.ALL)
     @JoinTable(name="subcomponents", joinColumns = { @JoinColumn(name="component_id") }, inverseJoinColumns = { @JoinColumn(name="subcomponent_id") })
 	public Set<NCSComponent> getSubcomponents() {
+        Hibernate.initialize(m_subcomponents);
 		return m_subcomponents;
 	}
 

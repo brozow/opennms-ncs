@@ -6,6 +6,8 @@ import function org.opennms.core.utils.InetAddressUtils.str;
 import java.util.Date;
 import java.net.InetAddress;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
 
 
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
@@ -97,14 +99,25 @@ then
 	sendResolvedComponentEvent(engine, $c, $cause);
 end
 
+
 rule "degrade parent component"
 	salience 800
 	when
 		$i : Impacted( $b : target, $e : cause )
-		DependsOn( $a : a, b == $b, $a.dependenciesRequired == DependencyRequirements.ANY )
+		DependsOn( $a : a, b == $b ) 
+		$c : NCSComponent( dependenciesRequired == NCSComponent.DependencyRequirements.ANY ) from $a
+		//exists ( not Impacted( $b : target, $e : cause ) from $c.getSubcomponents() )
+		//forall ( $subcomponent : NCSComponent, exists not Impacted( target == $subcomponent ) ) from $c.getSubcomponents()
+		
+		$subcomponents: ArrayList() from $c.getSubcomponents()
+		
+		//forall ( $subcomponent : NCSComponent, exists not Impacted( target == $subcomponent ) ) from $subcomponents	
+		//exists ( NCSComponent  from $subcomponents )
 	then
-		println( "Degrading parent component " + $a );	
+		println( "Degrading parent component " + $a );
+				
 end
+
 
 rule "impacted parent component"
 	salience 400
