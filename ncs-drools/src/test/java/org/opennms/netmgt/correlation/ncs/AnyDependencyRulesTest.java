@@ -175,8 +175,8 @@ public class AnyDependencyRulesTest extends CorrelationRulesTestCase {
 
 	}
     
-    @Test
-    @Ignore
+	@Test
+	@Ignore
     public void testDependencyRules() throws Exception {
         
         // Get engine
@@ -205,7 +205,7 @@ public class AnyDependencyRulesTest extends CorrelationRulesTestCase {
         //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
         // Generate down event
         event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspB-PE1-PE2" );
-        event.setDbid(17);
+        event.setDbid(18);
         System.err.println("SENDING MplsLspPathDown on LspB EVENT!!");
         engine.correlate( event );
         // Check down event

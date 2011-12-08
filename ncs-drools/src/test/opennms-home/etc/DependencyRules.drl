@@ -47,7 +47,8 @@ then
 				Component child = new Component( ncsChild );
 				children.add( child );
 			}
-			insert( new DependsOnAny( parent, children ) );			
+			insert( new DependsOnAny( parent, children ) );
+			println( "Inserted DependsOnAny for " + parent );			
 		}
 			
 	}
@@ -154,20 +155,15 @@ end
 rule "impact parent with DependsOnAny"
 	salience 400
 	when
-		//$i : Impacted( $b : target, $e : cause )
+		$d : DependsOnAny( $a : component, $children : subComponents )
+		forall ( $sc: Component() from $children Impacted( target == $sc ) )
 		$e : Event()
-		$d : DependsOnAny( $a : component, $children : subComponents ) 
-		//forall ( $subcomponent : Component, Impacted( target == $subcomponent ) from $children )
-		//exists ( $subcomponent : Component, Impacted( target == $subcomponent, event == $e ) from $children )
-		
-		//forall ( DependsOn( a == $a, $child: b ) exists Impacted( target == $child ) )
-		 
-		
+		$sc: Component() from $children.get(0)
+		Impacted( target == $sc, cause == $e )
 	then
-		//println( "Component " + $a.getName() + " depends on impacted component " + $b.getName() + " with cause " + $e.getUei()  + " with id " + $e.getDbid() + " on ANY rule");
-		//insert( new Impacted( $a, $e ) );
-		//sendImpactedComponentEvent( engine, $a, $e );
-				
+		println( "Component " + $a.getName() + "impacted with DependsOnAny rule with cause " + $e.getUei()  + " with id " + $e.getDbid() );
+		insert( new Impacted( $a, $e ) );
+		sendImpactedComponentEvent( engine, $a, $e );		
 end
 
 
