@@ -31,27 +31,75 @@ rule "load dependencies"
 when
 	Impacted( $c : target )
 then
-	NCSComponent c = $c;
+	Component c = $c;
 	List<NCSComponent> list = correlationService.findComponentsThatDependOn( c.getId() );
-	for ( NCSComponent parent : list ) {
-		println( "Parent component '" + parent.getName() + "' depends on " + c.getName() );
-		insert( new DependsOn( parent, c ) );
+	for ( NCSComponent ncsParent : list ) {
+		Component parent = new Component( ncsParent );
+		if ( parent.getDependenciesRequired() != NCSComponent.DependencyRequirements.ANY ) {
+			println( "Parent component '" + parent.getName() + "' depends on " + c.getName() );
+			insert( new DependsOn( parent, c ) );
+		}
+		
+		else {
+			List<NCSComponent> ncsChildren = correlationService.findSubComponents( parent.getId() );
+			List<Component> children = new ArrayList<Component>( ncsChildren.size() );
+			for ( NCSComponent ncsChild : ncsChildren ) {
+				Component child = new Component( ncsChild );
+				children.add( child );
+			}
+			insert( new DependsOnAny( parent, children ) );			
+		}
+			
 	}
 end
+
+/*
+rule "load any depedencies"
+	salience 10000
+	when
+	$d:	DependsOn( a.dependenciesRequired == NCSComponent.DependencyRequirements.ANY )
+	not Any( component == $d.a ) 
+	then
+	NCSComponent parent = $d.getA();
+	List<NCSComponent> list = correlationService.findSubComponents( parent.getId() );
+	for ( NCSComponent child : list ) {
+		
+		if ( ! child.getId().equals( $d.getB().getId() ) ) { // If not already inserted
+			println( child.getName() + "' is subcomponent of " + parent.getName() );
+			insert( new DependsOn( parent, child ) );
+		}
+	}
+	insert( new Any( parent ) );
+		
+end
+*/
+
 
 rule "pseudo-wire component down"
 	salience 100
 when
 	$e : Event( uei matches ".*jnxVpnPwDown" )
+	
 then
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwType", "jnxVpnPwName");
-	for ( NCSComponent c : list ) {
-		println( "Component '" + c.getName() + "' is down!" );
-		insert( new Impacted( c, $e ) );
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
 		insert( new EventComponent( c, $e ) );
-		sendImpactedComponentEvent( engine, c, $e );
 	}
 end
+
+rule "component impacted"
+	salience 100
+	when
+		EventComponent( $c : component, $e : event )
+		not Impacted ( target == $c )
+	then
+		println( "Component '" + $c.getName() + "' is down!" );
+		insert( new Impacted( $c, $e ) );
+		sendImpactedComponentEvent( engine, $c, $e );
+end
+
+		
 
 
 rule "pseudo-wire component up"
@@ -74,19 +122,22 @@ then
 	println( "component up with " + $downVpnPwTypeValue + "_" + $downVpnPwNameValue );
 end
 
+
 rule "mpls lsp path component down"
 	salience 100
 when
 	$e : Event( uei matches ".*mplsLspPathDown" )
 then
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "mplsLspName");
-	for ( NCSComponent c : list ) {
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
 		println( "Component '" + c.getName() + "' is down!" );
 		insert( new Impacted( c, $e ) );
 		insert( new EventComponent( c, $e ) );
 		sendImpactedComponentEvent( engine, c, $e );
 	}
 end
+
 
 rule "resolved component"
 	salience 400
@@ -100,26 +151,29 @@ then
 end
 
 
-rule "degrade parent component"
-	salience 800
+rule "impact parent with DependsOnAny"
+	salience 400
 	when
-		$i : Impacted( $b : target, $e : cause )
-		DependsOn( $a : a, b == $b ) 
-		$c : NCSComponent( dependenciesRequired == NCSComponent.DependencyRequirements.ANY ) from $a
-		//exists ( not Impacted( $b : target, $e : cause ) from $c.getSubcomponents() )
-		//forall ( $subcomponent : NCSComponent, exists not Impacted( target == $subcomponent ) ) from $c.getSubcomponents()
+		//$i : Impacted( $b : target, $e : cause )
+		$e : Event()
+		$d : DependsOnAny( $a : component, $children : subComponents ) 
+		//forall ( $subcomponent : Component, Impacted( target == $subcomponent ) from $children )
+		//exists ( $subcomponent : Component, Impacted( target == $subcomponent, event == $e ) from $children )
 		
-		$subcomponents: ArrayList() from $c.getSubcomponents()
+		//forall ( DependsOn( a == $a, $child: b ) exists Impacted( target == $child ) )
+		 
 		
-		//forall ( $subcomponent : NCSComponent, exists not Impacted( target == $subcomponent ) ) from $subcomponents	
-		//exists ( NCSComponent  from $subcomponents )
 	then
-		println( "Degrading parent component " + $a );
+		//println( "Component " + $a.getName() + " depends on impacted component " + $b.getName() + " with cause " + $e.getUei()  + " with id " + $e.getDbid() + " on ANY rule");
+		//insert( new Impacted( $a, $e ) );
+		//sendImpactedComponentEvent( engine, $a, $e );
 				
 end
 
 
-rule "impacted parent component"
+
+
+rule "impacted parent with DependsOn"
 	salience 400
 when
 	$i : Impacted( $b : target, $e : cause )
@@ -162,7 +216,7 @@ function void println(Object msg)
 }
 
 
-function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, NCSComponent c, Event e )
+function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e )
 {
 	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentImpacted", "Drools" );
 	bldr.addParam("componentType", c.getType() );
@@ -173,7 +227,7 @@ function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, NCSCom
 }
 
 
-function void sendResolvedComponentEvent( DroolsCorrelationEngine engine, NCSComponent c, Event e)
+function void sendResolvedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e)
 {
 	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentResolved", "Drools" );
 	bldr.addParam("componentType", c.getType() );

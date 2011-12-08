@@ -31,6 +31,7 @@ package org.opennms.netmgt.correlation.ncs;
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opennms.netmgt.EventConstants;
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
@@ -175,26 +176,43 @@ public class AnyDependencyRulesTest extends CorrelationRulesTestCase {
 	}
     
     @Test
+    @Ignore
     public void testDependencyRules() throws Exception {
         
         // Get engine
         DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
         
-        // Antecipate down event
+        // Antecipate component lspA down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 17 ) );
-        //anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
-        //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
-		
-		// Generate down event
+        // Generate down event
 		Event event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
 		event.setDbid(17);
-		System.err.println("SENDING MplsLspPathDown EVENT!!");
+		System.err.println("SENDING MplsLspPathDown on LspA EVENT!!");
 		engine.correlate( event );
-		
 		// Check down event
 		getAnticipator().verifyAnticipated();
 		
+		
+		// Antecipate component lspB down event
+		// Parent should go down too
+        getAnticipator().reset();
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:lspB-PE1-PE2", 18 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "8765", 18 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 18) );
+        
+        //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
+        // Generate down event
+        event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspB-PE1-PE2" );
+        event.setDbid(17);
+        System.err.println("SENDING MplsLspPathDown on LspB EVENT!!");
+        engine.correlate( event );
+        // Check down event
+        getAnticipator().verifyAnticipated();
+		
+        
+        
 		/*
 		// Antecipate up event
         getAnticipator().reset();

@@ -195,6 +195,16 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		// Check down event
 		getAnticipator().verifyAnticipated();
 		
+		/* TODO: Not ready for this yet
+		// Generate additional down event - nothing should happen
+		getAnticipator().reset();
+        event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
+        event.setDbid(18);
+        System.err.println("SENDING VpnPwDown EVENT!!");
+        engine.correlate( event );
+        getAnticipator().verifyAnticipated();
+        */
+		
 		// Antecipate up event
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
@@ -211,6 +221,8 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         getAnticipator().verifyAnticipated();	
 	
     }
+    
+    
     
 	
 

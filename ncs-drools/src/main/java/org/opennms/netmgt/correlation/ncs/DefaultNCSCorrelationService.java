@@ -1,7 +1,9 @@
 package org.opennms.netmgt.correlation.ncs;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import org.opennms.netmgt.dao.NodeDao;
 import org.opennms.netmgt.model.events.EventUtils;
@@ -29,6 +31,7 @@ public class DefaultNCSCorrelationService implements NCSCorrelationService {
 		
 		for(NCSComponent parent : parents) {
 			m_componentRepo.initialize(parent);
+			
 		}
 		
 		return parents;
@@ -72,6 +75,23 @@ public class DefaultNCSCorrelationService implements NCSCorrelationService {
 		return true;
 		
 	}
+
+    @Override
+    public List<NCSComponent> findSubComponents(Long componentId) {
+
+                 
+            NCSComponent comp = m_componentRepo.get(componentId);
+            
+            Set<NCSComponent> subcomponents = comp.getSubcomponents();
+            
+            for(NCSComponent subcomponent : subcomponents) {
+                m_componentRepo.initialize(subcomponent);
+                
+            }
+            
+            return new ArrayList<NCSComponent>(subcomponents);
+
+    }
 
 
 }

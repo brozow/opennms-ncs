@@ -9,6 +9,8 @@ public interface NCSCorrelationService {
 	
 	List<NCSComponent> findComponentsThatDependOn(Long componentId);
 	
+	List<NCSComponent> findSubComponents(Long componentId);
+	
 	List<NCSComponent> findComponentsByNodeIdAndEventParameters(Event e, String... parameterNames);
 
 }
