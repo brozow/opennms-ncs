@@ -28,30 +28,29 @@ global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationServi
 
 rule "load dependencies"
 	salience 10000
-when
-	Impacted( $c : target )
-then
-	Component c = $c;
-	List<NCSComponent> list = correlationService.findComponentsThatDependOn( c.getId() );
-	for ( NCSComponent ncsParent : list ) {
-		Component parent = new Component( ncsParent );
-		if ( parent.getDependenciesRequired() != NCSComponent.DependencyRequirements.ANY ) {
-			println( "Parent component '" + parent.getName() + "' depends on " + c.getName() );
-			insert( new DependsOn( parent, c ) );
-		}
-		
-		else {
-			List<NCSComponent> ncsChildren = correlationService.findSubComponents( parent.getId() );
-			List<Component> children = new ArrayList<Component>( ncsChildren.size() );
-			for ( NCSComponent ncsChild : ncsChildren ) {
-				Component child = new Component( ncsChild );
-				children.add( child );
+	when
+		Impacted( $c : target )
+	then
+		Component c = $c;
+		List<NCSComponent> list = correlationService.findComponentsThatDependOn( c.getId() );
+		for ( NCSComponent ncsParent : list ) {
+			Component parent = new Component( ncsParent );
+			if ( parent.getDependenciesRequired() != NCSComponent.DependencyRequirements.ANY ) {
+				println( "Parent component '" + parent.getName() + "' depends on " + c.getName() );
+				insert( new DependsOn( parent, c ) );
 			}
-			insert( new DependsOnAny( parent, children ) );
-			println( "Inserted DependsOnAny for " + parent );			
-		}
+			else {
+				List<NCSComponent> ncsChildren = correlationService.findSubComponents( parent.getId() );
+				List<Component> children = new ArrayList<Component>( ncsChildren.size() );
+				for ( NCSComponent ncsChild : ncsChildren ) {
+					Component child = new Component( ncsChild );
+					children.add( child );
+				}
+				insert( new DependsOnAny( parent, children ) );
+				println( "Inserted DependsOnAny for " + parent );			
+			}
 			
-	}
+		}
 end
 
 /*
@@ -156,6 +155,7 @@ rule "impact parent with DependsOnAny"
 	salience 400
 	when
 		$d : DependsOnAny( $a : component, $children : subComponents )
+		not Impacted( target == $a )
 		forall ( $sc: Component() from $children Impacted( target == $sc ) )
 		$e : Event()
 		$sc: Component() from $children.get(0)

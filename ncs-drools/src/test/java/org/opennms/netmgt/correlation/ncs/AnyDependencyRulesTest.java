@@ -47,8 +47,10 @@ import org.opennms.netmgt.model.ncs.NCSComponentRepository;
 import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 
+
 public class AnyDependencyRulesTest extends CorrelationRulesTestCase {
-	
+
+       
 	@Autowired
 	NCSComponentRepository m_repository;
 	
@@ -176,7 +178,6 @@ public class AnyDependencyRulesTest extends CorrelationRulesTestCase {
 	}
     
 	@Test
-	@Ignore
     public void testDependencyRules() throws Exception {
         
         // Get engine
