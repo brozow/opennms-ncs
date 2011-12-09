@@ -55,6 +55,17 @@
       <artifactId>ncs-northbounder</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.opennms.ncs</groupId>
+      <artifactId>ncs-alarm-gui</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.opennms.ncs</groupId>
+      <artifactId>ncs-alarm-gui</artifactId>
+      <version>${project.version}</version>
+      <classifier>jsps</classifier>
+    </dependency>
   </dependencies>
 
 

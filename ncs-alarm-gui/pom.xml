@@ -3,13 +3,14 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <artifactId>root</artifactId>
-    <groupId>org.opennms.ncs</groupId>
-    <version>1-SNAPSHOT</version>
+    <artifactId>opennms</artifactId>
+    <groupId>org.opennms</groupId>
+    <version>1.9.94-SNAPSHOT</version>
   </parent>
+  <groupId>org.opennms.ncs</groupId>
   <artifactId>ncs-alarm-gui</artifactId>
-  <packaging>war</packaging>
-  <name>ncs-alarm-gui Maven Webapp</name>
+  <packaging>jar</packaging>
+  <name>OpenNMS NCS Alarm GUI</name>
   <url>http://maven.apache.org</url>
   
   <build>
@@ -23,23 +24,39 @@
             </configuration>
         </plugin>
         <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-jar-plugin</artifactId>
-            <version>2.3.2</version>
-            <configuration>
-             <includes>
-                <include>**/ncs/*</include>
-             </includes>
-            </configuration>
-            <executions>
-                <execution>
-                    <phase>package</phase>
-                    <goals>
-                        <goal>jar</goal>
-                    </goals>
-                </execution>
-            </executions>
-        </plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+	        <configuration>
+	          <descriptors>
+	            <descriptor>src/assembly/jsps.xml</descriptor>
+	          </descriptors>
+	        </configuration>
+	        <executions>
+	          <execution>
+	            <phase>package</phase>
+	            <goals>
+	              <goal>single</goal>
+	            </goals>
+	          </execution>
+	        </executions>
+	      </plugin>
+<!--         <plugin> -->
+<!--             <groupId>org.apache.maven.plugins</groupId> -->
+<!--             <artifactId>maven-jar-plugin</artifactId> -->
+<!--             <version>2.3.2</version> -->
+<!--             <configuration> -->
+<!--              <includes> -->
+<!--                 <include>**/ncs/*</include> -->
+<!--              </includes> -->
+<!--             </configuration> -->
+<!--             <executions> -->
+<!--                 <execution> -->
+<!--                     <phase>package</phase> -->
+<!--                     <goals> -->
+<!--                         <goal>jar</goal> -->
+<!--                     </goals> -->
+<!--                 </execution> -->
+<!--             </executions> -->
+<!--         </plugin> -->
     </plugins>
   </build>
   
