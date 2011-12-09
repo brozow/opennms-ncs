@@ -463,12 +463,11 @@
           </td>
           <!-- Cause Column Start -->          
           <td class="divider" valign="middle" rowspan="1" >
-          <%String cause = getParm(alarms[i].getParms(), "cause"); %>
-          <%if(cause != null){%>
-            <%=cause %>
-            <%--<nobr>
-                <a href="event/list.htm?sortby=id&amp;acktype=unack&amp;filter=parmmatchany%3dcause%3d<%=cause%>"><%=cause%></a>
-            </nobr> --%>
+          <%String related = getParm(alarms[i].getParms(), "cause"); %>
+          <%if(related != null){%>
+            <nobr>
+                <a href="alarm/ncs-list.htm?sortby=id&amp;acktype=unack&amp;filter=parmmatchany%3dcause%3d<%=related%>"><%=related%></a>
+            </nobr>
           <%} %>
           </td>
           
