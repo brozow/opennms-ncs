@@ -12,6 +12,7 @@
     <module>ncs-persistence</module>
     <module>ncs-drools</module>
     <module>ncs-assembly</module>
+    <module>ncs-alarm-gui</module>
   </modules>
   <profiles>
     <profile>
