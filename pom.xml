@@ -11,6 +11,7 @@
     <module>ncs-model</module>
     <module>ncs-persistence</module>
     <module>ncs-drools</module>
+    <module>ncs-northbounder</module>
     <module>ncs-assembly</module>
     <module>ncs-alarm-gui</module>
   </modules>
