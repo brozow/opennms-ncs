@@ -45,6 +45,7 @@ import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
 import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
 
 public class DependencyRulesTest extends CorrelationRulesTestCase {
 	
@@ -175,6 +176,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 	}
     
     @Test
+    @DirtiesContext
     public void testDependencyRules() throws Exception {
         
         // Get engine
@@ -222,9 +224,74 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 	
     }
     
-    
-    
+	@Test
+    @DirtiesContext
+    public void testDependencyAnyRules() throws Exception {
+        
+        // Get engine
+        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+        
+        // Antecipate component lspA down event
+        getAnticipator().reset();
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 17 ) );
+        // Generate down event
+		Event event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
+		event.setDbid(17);
+		System.err.println("SENDING MplsLspPathDown on LspA EVENT!!");
+		engine.correlate( event );
+		// Check down event
+		getAnticipator().verifyAnticipated();
+		
+		
+		// Antecipate component lspB down event
+		// Parent should go down too
+        getAnticipator().reset();
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:lspB-PE1-PE2", 18 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "8765", 18 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 18) );
+        
+        //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
+        // Generate down event
+        event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspB-PE1-PE2" );
+        event.setDbid(18);
+        System.err.println("SENDING MplsLspPathDown on LspB EVENT!!");
+        engine.correlate( event );
+        // Check down event
+        getAnticipator().verifyAnticipated();
+		
+        
+        
+		/*
+		// Antecipate up event
+        getAnticipator().reset();
+        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
+        anticipate(  createComponentResolvedEvent( "Service", "NA-Service", "123", 17 ) );
+        
+        // Generate up event
+        event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
+        event.setDbid(17);
+        System.err.println("SENDING VpnPwUp EVENT!!");
+        engine.correlate( event );
+        
+        // Check up event
+        getAnticipator().verifyAnticipated();	
+        */
 	
+    }
+    
+
+    
+    private Event createMplsLspPathDownEvent( int nodeid, String ipaddr, String lspname ) {
+        
+        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Drools")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("mplsLspName", lspname )
+                .getEvent();
+    }
+
 
     private Event createVpnPwDownEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
 		
