@@ -74,6 +74,8 @@ public class NCSAlarmController {
                     filterList.add(filter);
                 }
             }
+        }else {
+            filterList.add(AlarmUtil.getFilter("parmmatchany=componentType=Service", getServletContext()));
         }
 
         // handle the optional limit parameter
