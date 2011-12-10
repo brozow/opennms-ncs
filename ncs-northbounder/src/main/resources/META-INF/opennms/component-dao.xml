@@ -8,11 +8,10 @@
 	">
 	
 	<bean name="ncsNorthbounderConfigDao" class="org.opennms.netmgt.ncs.northbounder.NCSNorthbounderConfigDao">
-	  <property name="configResource" value="${opennms.home}/etc/ncs-northbounder-configuration.xml" />
+	  <property name="configResource" value="file:${opennms.home}/etc/ncs-northbounder-configuration.xml" />
 	</bean>
-
-	<bean name="ncsNorthbounder" class="org.opennms.netmgt.ncs.northbounder.NCSNorthbounder" />
 	
-	<onmsgi:service ref="ncsNorthbounder" interface="org.opennms.netmgt.alarmd.api.Northbounder" />
+	<bean name="ncsNorthbounderManager" class="org.opennms.netmgt.ncs.northbounder.NCSNorthbounderManager" />
+
 
 </beans>

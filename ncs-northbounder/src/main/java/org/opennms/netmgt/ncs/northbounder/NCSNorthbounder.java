@@ -69,7 +69,6 @@ import org.opennms.netmgt.alarmd.api.NorthbounderException;
 import org.opennms.netmgt.alarmd.api.support.AbstractNorthbounder;
 import org.opennms.netmgt.ncs.northbounder.transfer.ServiceAlarm;
 import org.opennms.netmgt.ncs.northbounder.transfer.ServiceAlarmNotification;
-import org.springframework.util.Assert;
 
 /**
  * Forwards north bound alarms via HTTP.
@@ -78,23 +77,7 @@ import org.springframework.util.Assert;
  * @author <a mailto:david@opennms.org>David Hustace</a>
  */
 public class NCSNorthbounder extends AbstractNorthbounder {
-    private static final String COMPONENT_NAME = "componentName";
-	private static final String COMPONENT_FOREIGN_ID = "componentForeignId";
-	private static final String COMPONENT_FOREIGN_SOURCE = "componentForeignSource";
-	private static final String COMPONENT_TYPE = "componentType";
-	private NCSNorthbounderConfig m_config;
-	private JAXBContext m_context;
-	private Marshaller m_marshaller;
-
-    protected NCSNorthbounder() throws JAXBException {
-        super("NCSNorthbounder");
-        
-		m_context = JAXBContext.newInstance(ServiceAlarmNotification.class);
-		m_marshaller = m_context.createMarshaller();
-		m_marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-
-    }
-
+	
     //FIXME: This should be wired with Spring but is implmented as was in the PSM
     // Make sure that the {@link EmptyKeyRelaxedTrustSSLContext} algorithm
     // is available to JSSE
@@ -104,14 +87,29 @@ public class NCSNorthbounder extends AbstractNorthbounder {
         java.security.Security.addProvider(new EmptyKeyRelaxedTrustProvider());
     }
     
+
+    private static final String COMPONENT_NAME = "componentName";
+	private static final String COMPONENT_FOREIGN_ID = "componentForeignId";
+	private static final String COMPONENT_FOREIGN_SOURCE = "componentForeignSource";
+	private static final String COMPONENT_TYPE = "componentType";
+	private NCSNorthbounderConfig m_config;
+	private JAXBContext m_context;
+	private Marshaller m_marshaller;
+
+    public NCSNorthbounder(NCSNorthbounderConfig config) throws JAXBException {
+        super("NCSNorthbounder");
+        
+		m_context = JAXBContext.newInstance(ServiceAlarmNotification.class);
+		m_marshaller = m_context.createMarshaller();
+		m_marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		
+		m_config = config;
+		
+		setNaglesDelay(m_config.getNaglesDelay());
+
+    }
+
     
-
-    @Override
-	protected void onPreStart() {
-    	Assert.notNull(m_config, "configuration should be set before call to onPreStart");
-    	setNaglesDelay(m_config.getNaglesDelay());
-	}
-
 	@Override
     public boolean accepts(NorthboundAlarm alarm) {
     	if (!m_config.isEnabled()) return false;

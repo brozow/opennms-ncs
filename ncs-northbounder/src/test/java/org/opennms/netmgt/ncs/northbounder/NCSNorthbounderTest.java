@@ -141,8 +141,7 @@ public class NCSNorthbounderTest {
         config.setPath("/fmpm/restful/NotificationMessageRelay");
         config.setMethod(HttpMethod.POST);
 
-        NCSNorthbounder nb = new NCSNorthbounder();
-        nb.setConfig(config);
+        NCSNorthbounder nb = new NCSNorthbounder(config);
         
         List<NorthboundAlarm> alarms = Arrays.asList(alarm(1), alarm(2), alarm(3), alarm(4));
         nb.forwardAlarms(alarms);
@@ -177,8 +176,7 @@ public class NCSNorthbounderTest {
         config.setPath("/fmpm/restful/NotificationMessageRelay");
         config.setMethod(HttpMethod.POST);
 
-        NCSNorthbounder nb = new NCSNorthbounder();
-        nb.setConfig(config);
+        NCSNorthbounder nb = new NCSNorthbounder(config);
         
         List<NorthboundAlarm> alarms = Arrays.asList(alarm(1), alarm(2), alarm(3), alarm(4));
         nb.forwardAlarms(alarms);
