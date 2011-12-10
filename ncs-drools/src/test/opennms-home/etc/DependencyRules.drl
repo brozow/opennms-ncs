@@ -216,9 +216,10 @@ function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, Compon
 {
 	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentImpacted", "Drools" );
 	bldr.addParam("componentType", c.getType() );
+	bldr.addParam("componentName", c.getName() );
 	bldr.addParam("componentForeignSource", c.getForeignSource() );
 	bldr.addParam("componentForeignId", c.getForeignId() );
-	bldr.addParam("CAUSE", e.getDbid() );
+	bldr.addParam("cause", e.getDbid() );
 	engine.sendEvent(bldr.getEvent());
 }
 
@@ -227,9 +228,10 @@ function void sendResolvedComponentEvent( DroolsCorrelationEngine engine, Compon
 {
 	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentResolved", "Drools" );
 	bldr.addParam("componentType", c.getType() );
+	bldr.addParam("componentName", c.getName() );
 	bldr.addParam("componentForeignSource", c.getForeignSource() );
 	bldr.addParam("componentForeignId", c.getForeignId() );
-	bldr.addParam("CAUSE", e.getDbid() );
+	bldr.addParam("cause", e.getDbid() );
 	engine.sendEvent(bldr.getEvent());
 }
 
