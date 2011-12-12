@@ -466,7 +466,7 @@
           <%String related = getParm(alarms[i].getParms(), "cause"); %>
           <%if(related != null){%>
             <nobr>
-                <a href="alarm/ncs-list.htm?sortby=id&amp;acktype=unack&amp;filter=parmmatchany%3dcause%3d<%=related%>"><%=related%></a>
+                <a href="alarm/ncs-alarms.htm?sortby=id&amp;acktype=unack&amp;filter=parmmatchany%3dcause%3d<%=related%>"><%=related%></a>
             </nobr>
           <%} %>
           </td>
