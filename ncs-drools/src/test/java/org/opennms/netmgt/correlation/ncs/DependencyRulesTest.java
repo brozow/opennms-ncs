@@ -184,9 +184,9 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         
         // Antecipate down event
         getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
 		
 		// Generate down event
 		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
@@ -209,9 +209,9 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		
 		// Antecipate up event
         getAnticipator().reset();
-        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentResolvedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentResolvedEvent( "Service", "NA-Service", "123", 17 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
+        anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
         
         // Generate up event
         event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
@@ -233,7 +233,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         
         // Antecipate component lspA down event
         getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 17 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "lspA-PE1-PE2", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 17 ) );
         // Generate down event
 		Event event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
 		event.setDbid(17);
@@ -246,10 +246,10 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		// Antecipate component lspB down event
 		// Parent should go down too
         getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:lspB-PE1-PE2", 18 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElement", "NA-ServiceElement", "8765", 18 ) );
-        anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 18) );
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "lspB-PE1-PE2", "NA-SvcElemComp", "8765:lspB-PE1-PE2", 18 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 18 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18) );
         
         //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
         // Generate down event
@@ -318,22 +318,24 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 //        return new EventBuilder(createNodeEvent("rootCauseEvent", cause)).getEvent();
 //    }
 	
-	private Event createComponentImpactedEvent( String type, String foreignSource, String foreignId, int cause ) {
+	private Event createComponentImpactedEvent( String type, String name, String foreignSource, String foreignId, int cause ) {
         
         return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Drools")
         .addParam("componentType", type )
+        .addParam("componentName", name )
         .addParam("componentForeignSource", foreignSource )
         .addParam("componentForeignId", foreignId )
-        .addParam("CAUSE", cause )
+        .addParam("cause", cause )
         .getEvent();
     }
 	
-	private Event createComponentResolvedEvent(String type, String foreignSource, String foreignId, int cause) {
+	private Event createComponentResolvedEvent(String type, String name, String foreignSource, String foreignId, int cause) {
         return new EventBuilder("uei.opennms.org/internal/ncs/componentResolved", "Drools")
         .addParam("componentType", type )
+        .addParam("componentName", name)
         .addParam("componentForeignSource", foreignSource )
         .addParam("componentForeignId", foreignId )
-        .addParam("CAUSE", cause )
+        .addParam("cause", cause )
         .getEvent();
     }
 
