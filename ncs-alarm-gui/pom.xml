@@ -82,7 +82,6 @@
             <dependency>
                 <groupId>org.opennms.dependencies</groupId>
                 <artifactId>spring-web-dependencies</artifactId>
-                <version>1.9.94-SNAPSHOT</version>
                 <type>pom</type>
             </dependency>
         </dependencies>
@@ -106,19 +105,16 @@
     <dependency>
         <groupId>org.opennms</groupId>
         <artifactId>opennms-webapp</artifactId>
-        <version>1.9.94-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
         <groupId>org.opennms</groupId>
         <artifactId>opennms-web-api</artifactId>
-        <version>1.9.94-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.8.2</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
