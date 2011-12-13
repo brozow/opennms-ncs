@@ -3,12 +3,12 @@ package org.opennms.netmgt.correlation.ncs;
 
 import org.opennms.netmgt.xml.event.Event;
 
-public class EventComponent {
+public class ComponentUpEvent {
     
     private Component m_component;
     private Event     m_event;
     
-    public EventComponent(Component component, Event event) {
+    public ComponentUpEvent(Component component, Event event) {
         m_component = component;
         m_event = event;
     }

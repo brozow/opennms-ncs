@@ -28,7 +28,12 @@
 
 package org.opennms.netmgt.correlation.ncs;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.opennms.core.utils.InetAddressUtils.addr;
+
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -48,7 +53,7 @@ import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-public class DependencyRulesTest extends CorrelationRulesTestCase {
+public class EventMappingRulesTest extends CorrelationRulesTestCase {
 	
 	@Autowired
 	NCSComponentRepository m_repository;
@@ -179,154 +184,35 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 	
 	@Test
     @DirtiesContext
-    @Ignore("Non Deterministic!!!")
-    public void testDependencyAnyRules() throws Exception {
+    @Ignore
+    public void testMapPwDown() throws Exception {
         
         // Get engine
-        DroolsCorrelationEngine engine = findEngineByName("monolithicDependencyRules");
+        DroolsCorrelationEngine engine = findEngineByName("eventMappingRules");
         
-        // Anticipate component lspA down event
-        getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "lspA-PE1-PE2", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 17 ) );
-        // Generate down event
-		Event event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
+        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
+        
+		// Generate down event
+		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
 		event.setDbid(17);
-		System.err.println("SENDING MplsLspPathDown on LspA EVENT!!");
+		System.err.println("SENDING VpnPwDown EVENT!!");
+		
 		engine.correlate( event );
-		// Check down event
-		getAnticipator().verifyAnticipated();
 		
-		
-		// Anticipate component lspB down event
-		// Parent should go down too
-        getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "lspB-PE1-PE2", "NA-SvcElemComp", "8765:lspB-PE1-PE2", 18 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 18 ) );
-        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18) );
-        
-        //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
-        // Generate down event
-        event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspB-PE1-PE2" );
-        event.setDbid(18);
-        System.err.println("SENDING MplsLspPathDown on LspB EVENT!!");
-        engine.correlate( event );
-        // Check down event
-        getAnticipator().verifyAnticipated();
-		
-        
-		// Anticipate up event
-        getAnticipator().reset();
-        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "lspA-PE1-PE2", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 18 ) );
-        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
-        anticipate(  createComponentResolvedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 18 ) );
-        anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 18) );
-        
-        //Generate up event
-        event = createMplsLspPathUpEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
-        event.setDbid(17);
-        System.err.println("SENDING MplsLspPathUp on LspA EVENT!!");
-        engine.correlate( event );
-        
-        // Check up event
-        getAnticipator().verifyAnticipated();	
-        
-	
-    }
-    
+		List<Object> memObjects = engine.getMemoryObjects();
 
-	@Test
-    @DirtiesContext
-    public void testSimpleUpDownCase() throws Exception {
+		assertEquals("Unexpected size of workingMemory " + memObjects, 1, memObjects.size());
+		assertTrue( memObjects.get(0) instanceof ComponentDownEvent );
 		
-        // Get engine
-        DroolsCorrelationEngine engine = findEngineByName("monolithicDependencyRules");
-        
-        // Antecipate down event
-        getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
+		ComponentDownEvent c = (ComponentDownEvent) memObjects.get(0);
 		
-		// Generate down event
-		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-		event.setDbid(17);
-		System.err.println("SENDING VpnPwDown EVENT!!");
-		engine.correlate( event );
+		assertSame(event, c.getEvent());
 		
-		// Check down event
-		getAnticipator().verifyAnticipated();
-		
-		// Generate additional down event - nothing should happen
-//		getAnticipator().reset();
-//        event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-//        event.setDbid(18);
-//        System.err.println("SENDING VpnPwDown EVENT!!");
-//        engine.correlate( event );
-//        getAnticipator().verifyAnticipated();
-		
-		// Anticipate up event
-        getAnticipator().reset();
-        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentResolvedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-        
-        // Generate up event
-        event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-        event.setDbid(17);
-        System.err.println("SENDING VpnPwUp EVENT!!");
-        engine.correlate( event );
-        
-        // Check up event
-        getAnticipator().verifyAnticipated();	
-	
-    }
-    
-    @Test
-    @DirtiesContext
-    @Ignore("not yet implemented")
-    public void testMultipleDownAndSingleUpCase() throws Exception {
-        
-        // Get engine
-        DroolsCorrelationEngine engine = findEngineByName("monolithicDependencyRules");
-        
-        // Anticipate down event
-        getAnticipator().reset();
-        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-		
-		// Generate down event
-		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-		event.setDbid(17);
-		System.err.println("SENDING VpnPwDown EVENT!!");
-		engine.correlate( event );
-		
-		// Check down event
-		getAnticipator().verifyAnticipated();
-		
-		// Generate additional down event - nothing should happen
-		getAnticipator().reset();
-        event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-        event.setDbid(18);
-        System.err.println("SENDING VpnPwDown EVENT!!");
-        engine.correlate( event );
-        getAnticipator().verifyAnticipated();
-		
-		// Anticipate up event
-        getAnticipator().reset();
-        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentResolvedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-        
-        // Generate up event
-        event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-        event.setDbid(17);
-        System.err.println("SENDING VpnPwUp EVENT!!");
-        engine.correlate( event );
-        
-        // Check up event
-        getAnticipator().verifyAnticipated();	
+		Component component = c.getComponent();
+		assertEquals("ServiceElementComponent", component.getType());
+		assertEquals("NA-SvcElemComp", component.getForeignSource());
+		assertEquals("9876:jnxVpnPw-vcid(50)", component.getForeignId());
+
 	
     }
     
@@ -383,65 +269,16 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
                 .getEvent();
     }
 
-    // Currently unused
-//    private Event createRootCauseEvent(int symptom, int cause) {
-//        return new EventBuilder(createNodeEvent("rootCauseEvent", cause)).getEvent();
-//    }
-	
-	private Event createComponentImpactedEvent( String type, String name, String foreignSource, String foreignId, int cause ) {
-        
-        return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Component Correlator")
-        .addParam("componentType", type )
-        .addParam("componentName", name )
-        .addParam("componentForeignSource", foreignSource )
-        .addParam("componentForeignId", foreignId )
-        .addParam("cause", cause )
-        .getEvent();
-    }
-	
-	private Event createComponentResolvedEvent(String type, String name, String foreignSource, String foreignId, int cause) {
-        return new EventBuilder("uei.opennms.org/internal/ncs/componentResolved", "Component Correlator")
-        .addParam("componentType", type )
-        .addParam("componentName", name)
-        .addParam("componentForeignSource", foreignSource )
-        .addParam("componentForeignId", foreignId )
-        .addParam("cause", cause )
-        .getEvent();
-    }
-
-
-    public Event createNodeDownEvent(int nodeid) {
-        return createNodeEvent(EventConstants.NODE_DOWN_EVENT_UEI, nodeid);
+    private Event createNodeDownEvent(int nodeid) {
+        return new EventBuilder(EventConstants.NODE_DOWN_EVENT_UEI, "test")
+		.setNodeid(nodeid)
+		.getEvent();
     }
     
-    public Event createNodeUpEvent(int nodeid) {
-        return createNodeEvent(EventConstants.NODE_UP_EVENT_UEI, nodeid);
-    }
-    
-    public Event createNodeLostServiceEvent(int nodeid, String ipAddr, String svcName)
-    {
-    	return createSvcEvent("uei.opennms.org/nodes/nodeLostService", nodeid, ipAddr, svcName);
-    }
-    
-    public Event createNodeRegainedServiceEvent(int nodeid, String ipAddr, String svcName)
-    {
-    	return createSvcEvent("uei.opennms.org/nodes/nodeRegainedService", nodeid, ipAddr, svcName);
-    }
-    
-    private Event createSvcEvent(String uei, int nodeid, String ipaddr, String svcName)
-    {
-    	return new EventBuilder(uei, "Test")
-    		.setNodeid(nodeid)
-    		.setInterface( addr( ipaddr ) )
-    		.setService( svcName )
-    		.getEvent();
-    		
-    }
-
-    private Event createNodeEvent(String uei, int nodeid) {
-        return new EventBuilder(uei, "test")
-            .setNodeid(nodeid)
-            .getEvent();
+    private Event createNodeUpEvent(int nodeid) {
+        return new EventBuilder(EventConstants.NODE_UP_EVENT_UEI, "test")
+		.setNodeid(nodeid)
+		.getEvent();
     }
     
 

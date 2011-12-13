@@ -1,0 +1,133 @@
+package org.opennms.netmgt.correlation.ncs.external;
+
+import function org.opennms.core.utils.InetAddressUtils.addr;
+import function org.opennms.core.utils.InetAddressUtils.str;
+
+import java.util.Date;
+import java.net.InetAddress;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.HashSet;
+
+
+import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
+import org.opennms.netmgt.correlation.ncs.*;
+import org.opennms.netmgt.model.ncs.*;
+import org.opennms.netmgt.xml.event.Event;
+import org.opennms.netmgt.xml.event.Parm;
+import org.opennms.netmgt.xml.event.Parms;
+import org.opennms.netmgt.xml.event.Value;
+import org.opennms.netmgt.model.events.EventBuilder;
+import org.opennms.netmgt.EventConstants;
+import org.opennms.netmgt.capsd.EventUtils;
+import org.drools.spi.KnowledgeHelper;
+
+global org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine engine;
+global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationService;
+
+
+
+rule "pseudo-wire component down"
+	salience 100
+when
+	$e : Event( uei matches ".*jnxVpnPwDown" )
+then
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwType", "jnxVpnPwName");
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
+		insert( new ComponentDownEvent( c, $e ) );
+	}
+end
+
+rule "pseudo-wire component up"
+	salience 100
+when
+	$e : Event( uei matches ".*jnxVpnPwUp" )
+then
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwType", "jnxVpnPwName");
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
+		insert( new ComponentUpEvent( c, $e ) );
+	}
+end
+
+/*
+rule "pseudo-wire component up"
+	salience 100
+when
+	$downEvent : Event( uei matches ".*jnxVpnPwDown", $downNodeId : nodeid, $downParms : parmCollection )
+	Parm( parmName == "jnxVpnPwType", $downVpnPwTypeValue: value.content ) from $downParms
+	Parm( parmName == "jnxVpnPwName", $downVpnPwNameValue: value.content ) from $downParms
+	$upEvent : Event( uei matches ".*jnxVpnPwUp", nodeid == $downNodeId, $upParms : parmCollection )
+	Parm( parmName == "jnxVpnPwType", value.content == $downVpnPwTypeValue ) from $upParms
+	Parm( parmName == "jnxVpnPwName", value.content == $downVpnPwNameValue ) from $upParms
+	$eventComponent: ComponentDownEvent ( $c : component, event == $downEvent )
+then
+	
+	insert( new ComponentUpEvent( c, $downEvent, $upEvent ) )
+end
+*/
+
+rule "mpls lsp path component down"
+	salience 100
+when
+	$e : Event( uei matches ".*mplsLspPathDown" )
+then
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "mplsLspName");
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
+		println( "Component '" + c.getName() + "' is down!" );
+		insert( new Impacted( c, $e ) );
+		insert( new EventComponent( c, $e ) );
+		sendImpactedComponentEvent( engine, c, $e );
+	}
+end
+
+rule "mpls lsp path component up"
+	salience 100
+when
+	$downEvent : Event( uei matches ".*mplsLspPathDown", $downNodeId : nodeid, $downParms : parmCollection )
+	Parm( parmName == "mplsLspName", $downValue: value.content ) from $downParms
+	$upEvent : Event( uei matches ".*mplsLspPathUp", nodeid == $downNodeId, $upParms : parmCollection )
+	Parm( parmName == "mplsLspName", value.content == $downValue ) from $upParms
+	$eventComponent: EventComponent ( $c : component, event == $downEvent )
+	$impacted : Impacted( target == $c, cause == $downEvent )
+then
+	retract( $downEvent );
+	retract( $upEvent );
+	retract( $eventComponent );
+	insert( new Resolved( $downEvent, $upEvent ) ); //TODO: Looks strange
+	println( "Resolved mpls down event " + $downEvent );
+	println( "mpls component up with " + $downValue );	
+end
+
+function void println(Object msg)
+{
+	System.err.println(new Date() + " : " + msg);
+}
+
+function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e )
+{
+	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentImpacted", "Component Correlator" );
+	bldr.addParam("componentType", c.getType() );
+	bldr.addParam("componentName", c.getName() );
+	bldr.addParam("componentForeignSource", c.getForeignSource() );
+	bldr.addParam("componentForeignId", c.getForeignId() );
+	bldr.addParam("cause", e.getDbid() );
+	engine.sendEvent(bldr.getEvent());
+}
+
+
+function void sendResolvedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e)
+{
+	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentResolved", "Component Correlator" );
+	bldr.addParam("componentType", c.getType() );
+	bldr.addParam("componentName", c.getName() );
+	bldr.addParam("componentForeignSource", c.getForeignSource() );
+	bldr.addParam("componentForeignId", c.getForeignId() );
+	bldr.addParam("cause", e.getDbid() );
+	engine.sendEvent(bldr.getEvent());
+}
+
+
+
