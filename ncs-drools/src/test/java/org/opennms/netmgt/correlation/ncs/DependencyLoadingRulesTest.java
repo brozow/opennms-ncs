@@ -51,7 +51,7 @@ import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-public class EventMappingRulesTest extends CorrelationRulesTestCase {
+public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 	
 	@Autowired
 	NCSComponentRepository m_repository;
@@ -179,72 +179,16 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 
 	}
     
-	
 	@Test
-    @DirtiesContext
-    public void testMapPwDown() throws Exception {
-		
-		Event event = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-
-		testEventMapping(event, ComponentDownEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-
-    }
-
-
-	@Test
-    @DirtiesContext
-    public void testMapPwUp() throws Exception {
-
-		Event event = createVpnPwUpEvent(27, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-
-		testEventMapping(event, ComponentUpEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-
-    }
-    
-	@Test
-    @DirtiesContext
-    public void testMapMplsLspPathDown() throws Exception {
-		
-		Event event = createMplsLspPathDownEvent(37, m_pe2NodeId, "10.1.1.1", "lspA-PE2-PE1");
-
-		testEventMapping(event, ComponentDownEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1");
-
-	}
-    
-	@Test
-    @DirtiesContext
-    public void testMapMplsLspPathUp() throws Exception {
-		
-		Event event = createMplsLspPathUpEvent(37, m_pe2NodeId, "10.1.1.1", "lspA-PE2-PE1");
-
-		testEventMapping(event, ComponentUpEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1");
-    }
-    
-	private void testEventMapping(Event event, Class<? extends ComponentEvent> componentEventClass,	String componentType, String componentForeignSource, String componentForeignId) {
+	public void testLoadDependenciesOfTypeAll() {
 		// Get engine
-        DroolsCorrelationEngine engine = findEngineByName("eventMappingRules");
+        DroolsCorrelationEngine engine = findEngineByName("dependencyLoadingRules");
         
         assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
         
-		engine.correlate( event );
-		
-		List<Object> memObjects = engine.getMemoryObjects();
+        
+        
 
-		assertEquals("Unexpected size of workingMemory " + memObjects, 1, memObjects.size());
-
-		Object eventObj = memObjects.get(0);
-
-		assertTrue( componentEventClass.isInstance(eventObj) );
-		assertTrue( eventObj instanceof ComponentEvent );
-		
-		ComponentEvent c = (ComponentEvent) eventObj;
-		
-		assertSame(event, c.getEvent());
-		
-		Component component = c.getComponent();
-		assertEquals(componentType, component.getType());
-		assertEquals(componentForeignSource, component.getForeignSource());
-		assertEquals(componentForeignId, component.getForeignId());
 	}
     
 
@@ -253,62 +197,5 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
     // deps no longer needed by one event should remain loaded if need by others
     // deps no longer needed by any event should be unloaded
 
-    // propagate outages to 'dependsOn' parents
-    // propagate outages to 'dependsOnAny' parents when ALL children are down
-    // resolve outages in 'dependsOn' parents when dependsOn children are resolved
-    // resolve outage in 'dependsOnAny' parents when ANY child is resolved
-
-    // map various events to outages and resolutions
-    // ignore duplicate cause events
-    // ignore duplicate resolution events
     
-    private Event createMplsLspPathDownEvent( int dbId, int nodeid, String ipaddr, String lspname ) {
-        
-        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Test")
-                .setNodeid(nodeid)
-                .setInterface( addr( ipaddr ) )
-                .addParam("mplsLspName", lspname )
-                .getEvent();
-        
-        event.setDbid(dbId);
-		return event;
-    }
-    
-    private Event createMplsLspPathUpEvent( int dbId, int nodeid, String ipaddr, String lspname ) {
-        
-        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp", "Drools")
-                .setNodeid(nodeid)
-                .setInterface( addr( ipaddr ) )
-                .addParam("mplsLspName", lspname )
-                .getEvent();
-        event.setDbid(dbId);
-		return event;
-    }
-
-
-    private Event createVpnPwDownEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
-		
-		Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Test")
-				.setNodeid(nodeid)
-				.setInterface( addr( ipaddr ) )
-				.addParam("jnxVpnPwType", pwtype )
-				.addParam("jnxVpnPwName", pwname )
-				.getEvent();
-		event.setDbid(dbId);
-		return event;
-	}
-
-    private Event createVpnPwUpEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
-        
-        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Test")
-                .setNodeid(nodeid)
-                .setInterface( addr( ipaddr ) )
-                .addParam("jnxVpnPwType", pwtype )
-                .addParam("jnxVpnPwName", pwname )
-                .getEvent();
-        event.setDbid(dbId);
-		return event;
-    }
-
-
 }
