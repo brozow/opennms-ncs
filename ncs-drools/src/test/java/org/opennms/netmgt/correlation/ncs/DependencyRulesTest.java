@@ -228,6 +228,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     }
     
 	@Test
+    @Ignore
     @DirtiesContext
     public void testDependencyAnyRules() throws Exception {
         
