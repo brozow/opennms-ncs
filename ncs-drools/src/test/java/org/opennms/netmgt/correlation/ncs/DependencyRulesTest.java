@@ -285,7 +285,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     
     private Event createMplsLspPathDownEvent( int nodeid, String ipaddr, String lspname ) {
         
-        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Drools")
+        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Test")
                 .setNodeid(nodeid)
                 .setInterface( addr( ipaddr ) )
                 .addParam("mplsLspName", lspname )
@@ -295,7 +295,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 
     private Event createVpnPwDownEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
 		
-		return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Drools")
+		return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Test")
 				.setNodeid(nodeid)
 				.setInterface( addr( ipaddr ) )
 				.addParam("jnxVpnPwType", pwtype )
@@ -305,7 +305,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 
     private Event createVpnPwUpEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
         
-        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Drools")
+        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Test")
                 .setNodeid(nodeid)
                 .setInterface( addr( ipaddr ) )
                 .addParam("jnxVpnPwType", pwtype )
@@ -320,7 +320,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 	
 	private Event createComponentImpactedEvent( String type, String name, String foreignSource, String foreignId, int cause ) {
         
-        return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Drools")
+        return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Component Correlator")
         .addParam("componentType", type )
         .addParam("componentName", name )
         .addParam("componentForeignSource", foreignSource )
@@ -330,7 +330,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     }
 	
 	private Event createComponentResolvedEvent(String type, String name, String foreignSource, String foreignId, int cause) {
-        return new EventBuilder("uei.opennms.org/internal/ncs/componentResolved", "Drools")
+        return new EventBuilder("uei.opennms.org/internal/ncs/componentResolved", "Component Correlator")
         .addParam("componentType", type )
         .addParam("componentName", name)
         .addParam("componentForeignSource", foreignSource )
@@ -360,7 +360,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     
     private Event createSvcEvent(String uei, int nodeid, String ipaddr, String svcName)
     {
-    	return new EventBuilder(uei, "Drools")
+    	return new EventBuilder(uei, "Test")
     		.setNodeid(nodeid)
     		.setInterface( addr( ipaddr ) )
     		.setService( svcName )
