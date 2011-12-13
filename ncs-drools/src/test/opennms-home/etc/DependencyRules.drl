@@ -53,27 +53,7 @@ rule "load dependencies"
 		}
 end
 
-/*
-rule "load any depedencies"
-	salience 10000
-	when
-	$d:	DependsOn( a.dependenciesRequired == NCSComponent.DependencyRequirements.ANY )
-	not Any( component == $d.a ) 
-	then
-	NCSComponent parent = $d.getA();
-	List<NCSComponent> list = correlationService.findSubComponents( parent.getId() );
-	for ( NCSComponent child : list ) {
-		
-		if ( ! child.getId().equals( $d.getB().getId() ) ) { // If not already inserted
-			println( child.getName() + "' is subcomponent of " + parent.getName() );
-			insert( new DependsOn( parent, child ) );
-		}
-	}
-	insert( new Any( parent ) );
-		
-end
-*/
-
+//TODO: Do we need a rule to unload deps as well?
 
 rule "pseudo-wire component down"
 	salience 100
@@ -138,17 +118,68 @@ then
 	}
 end
 
+rule "mpls lsp path component up"
+	salience 100
+when
+	$downEvent : Event( uei matches ".*mplsLspPathDown", $downNodeId : nodeid, $downParms : parmCollection )
+	Parm( parmName == "mplsLspName", $downValue: value.content ) from $downParms
+	$upEvent : Event( uei matches ".*mplsLspPathUp", nodeid == $downNodeId, $upParms : parmCollection )
+	Parm( parmName == "mplsLspName", value.content == $downValue ) from $upParms
+	$eventComponent: EventComponent ( $c : component, event == $downEvent )
+	$impacted : Impacted( target == $c, cause == $downEvent )
+then
+	retract( $downEvent );
+	retract( $upEvent );
+	retract( $eventComponent );
+	insert( new Resolved( $downEvent, $upEvent ) ); //TODO: Looks strange
+	println( "Resolved mpls down event " + $downEvent );
+	println( "mpls component up with " + $downValue );	
+end
+
 
 rule "resolved component"
-	salience 400
+	salience 1000
 when
 	$i : Impacted( $c : target, $cause : cause )
 	$r : Resolved( cause == $cause )
 then
-	println( " Resolving Impact " + $i );
+	println( " Resolving Impact " + $c.getName() + " " + $i );
 	retract( $i ); 
 	sendResolvedComponentEvent(engine, $c, $cause);
 end
+
+
+rule "resolved parent component with depends on any"
+	salience 400
+when
+	$i : Impacted( $c : target, $cause : cause)
+	$d : DependsOnAny( component == $c, $children : subComponents )
+	not ( forall ( $sc: Component() from $children Impacted( target == $sc ) ) )
+then
+	println( " Resolving Impact with depends on any " + $c.getName() + " " + $i );
+	retract( $i ); 
+	retract( $d );
+	sendResolvedComponentEvent(engine, $c, $cause);
+end
+
+//TODO: Work in progress, not sure we can do that...
+/*
+rule "resolved parent component with depends on"
+	salience 400
+when
+	$i : Impacted( $c : target, $cause : cause)
+	$d : DependsOn( a == $c, $b : b )
+	not ( Impacted( target == $b ) )
+then
+	println( " Resolving Impact with depends on  " + $b.getName() + " " + $i );
+	retract( $i ); 
+	retract( $d );
+	sendResolvedComponentEvent(engine, $b, $cause);
+end
+*/
+
+
+
 
 
 rule "impact parent with DependsOnAny"

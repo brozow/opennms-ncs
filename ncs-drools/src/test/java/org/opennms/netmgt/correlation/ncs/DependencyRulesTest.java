@@ -31,6 +31,7 @@ package org.opennms.netmgt.correlation.ncs;
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opennms.netmgt.EventConstants;
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
@@ -175,7 +176,9 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 
 	}
     
+	
     @Test
+    @Ignore
     @DirtiesContext
     public void testDependencyRules() throws Exception {
         
@@ -262,22 +265,23 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 		
         
         
-		/*
+		
 		// Antecipate up event
         getAnticipator().reset();
-        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
-        anticipate(  createComponentResolvedEvent( "ServiceElement", "NA-ServiceElement", "9876", 17 ) );
-        anticipate(  createComponentResolvedEvent( "Service", "NA-Service", "123", 17 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "lspA-PE1-PE2", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 18 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 18 ) );
+        anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 18) );
         
-        // Generate up event
-        event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
+        //Generate up event
+        event = createMplsLspPathUpEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
         event.setDbid(17);
-        System.err.println("SENDING VpnPwUp EVENT!!");
+        System.err.println("SENDING MplsLspPathUp on LspA EVENT!!");
         engine.correlate( event );
         
         // Check up event
         getAnticipator().verifyAnticipated();	
-        */
+        
 	
     }
     
@@ -286,6 +290,15 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     private Event createMplsLspPathDownEvent( int nodeid, String ipaddr, String lspname ) {
         
         return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Test")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("mplsLspName", lspname )
+                .getEvent();
+    }
+    
+    private Event createMplsLspPathUpEvent( int nodeid, String ipaddr, String lspname ) {
+        
+        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp", "Drools")
                 .setNodeid(nodeid)
                 .setInterface( addr( ipaddr ) )
                 .addParam("mplsLspName", lspname )
