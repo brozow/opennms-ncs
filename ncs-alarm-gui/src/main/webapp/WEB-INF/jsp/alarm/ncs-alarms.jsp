@@ -443,7 +443,7 @@
           <td class="divider" valign="middle" rowspan="1">
           <%String componentType = getParm(alarms[i].getParms(), "componentType"); %>
           <%if(componentType != null){ %>
-            <%=componentType %>
+            <a href="ncs/ncs-type.htm?type=<%=componentType%>&foreignSource=<%=getParm(alarms[i].getParms(), "foreignSource")%>&foreignId=<%=getParm(alarms[i].getParms(), "foreignId")%>"><%=componentType %></a>
             <nobr>
                 <a href="<%=this.makeLink( parms, new EventParmLikeFilter("componentType=" + componentType), true)%>" class="filterLink" title="Show only alarms with componentType">${addPositiveFilter}</a>
                   <a href="<%=this.makeLink( parms, new NegativeEventParmLikeFilter("componentType=" + componentType), true)%>" class="filterLink" title="Do not show alarms with componentType">${addNegativeFilter}</a>
