@@ -26,118 +26,50 @@ global org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine engine;
 global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationService;
 
 
-rule "component impacted"
+rule "component down event"
 	salience 100
-	when
-		$cde: ComponentDownEvent( $c : component, $e : event )
-		not Impacted ( target == $c )
-	then
-		println( "Component '" + $c.getName() + "' is down!" );
-		insert( new Impacted( $c, $e ) );
-		insert( new DependenciesNeeded( $c, $cde ) ); 
-		sendImpactedComponentEvent( engine, $c, $e );
+when
+	$cde: ComponentDownEvent( $c : component, $e : event )
+	not ComponentImpacted ( target == $c )
+then
+	println( "Component '" + $c.getName() + "' is down!" );
+	insert( new ComponentImpacted( $c, $cde ) );
+	insert( new DependenciesNeeded( $c, $cde ) ); 
+	sendComponentImpactedEvent( engine, $c, $e );
 end
 
+rule "component up event"
+	salience 100
+when
+	$cde : ComponentDownEvent( $c : component, $downEvent : event )
+	$cue : ComponentUpEvent( component == $c )
+then
+	println( "Found resolution for " + $cde );
+	retract( $cde );
+	retract( $cue );
+	insert( new ComponentEventResolved( $cde, $cue ) );
+end
 
 rule "resolved component"
 	salience 1000
 when
-	$i : Impacted( $c : target, $cause : cause )
-	$r : Resolved( cause == $cause )
+	$r : ComponentEventResolved( $cause : cause )
+	$i : ComponentImpacted( cause == $cause, $c : target )
+	$d : DependenciesNeeded( requestor == $cause )
 then
-	println( " Resolving Impact " + $c.getName() + " " + $i );
-	retract( $i ); 
-	sendResolvedComponentEvent(engine, $c, $cause);
-end
-
-
-rule "resolved parent component with depends on any"
-	salience 400
-when
-	$i : Impacted( $c : target, $cause : cause)
-	$d : DependsOnAny( component == $c, $children : subComponents )
-	not ( forall ( $sc: Component() from $children Impacted( target == $sc ) ) )
-then
-	println( " Resolving Impact with depends on any " + $c.getName() + " " + $i );
-	retract( $i ); 
 	retract( $d );
-	sendResolvedComponentEvent(engine, $c, $cause);
+	retract( $i );
+	sendComponentResolvedEvent( engine, $c, $cause.getEvent() );
 end
 
-//TODO: Work in progress, not sure we can do that...
-/*
-rule "resolved parent component with depends on"
-	salience 400
-when
-	$i : Impacted( $c : target, $cause : cause)
-	$d : DependsOn( a == $c, $b : b )
-	not ( Impacted( target == $b ) )
-then
-	println( " Resolving Impact with depends on  " + $b.getName() + " " + $i );
-	retract( $i ); 
-	retract( $d );
-	sendResolvedComponentEvent(engine, $b, $cause);
-end
-*/
-
-
-
-
-
-rule "impact parent with DependsOnAny"
-	salience 400
-	when
-		$d : DependsOnAny( $a : component, $children : subComponents )
-		not Impacted( target == $a )
-		forall ( $sc: Component() from $children Impacted( target == $sc ) )
-		$e : Event()
-		$sc: Component() from $children.get(0)
-		Impacted( target == $sc, cause == $e )
-	then
-		println( "Component " + $a.getName() + "impacted with DependsOnAny rule with cause " + $e.getUei()  + " with id " + $e.getDbid() );
-		insert( new Impacted( $a, $e ) );
-		sendImpactedComponentEvent( engine, $a, $e );		
-end
-
-
-
-
-rule "impacted parent with DependsOn"
-	salience 400
-when
-	$i : Impacted( $b : target, $e : cause )
-	DependsOn( $a : a, b == $b )
-then
-	println( "Component " + $a.getName() + " depends on impacted component " + $b.getName() + " with cause " + $e.getUei()  + " with id " + $e.getDbid() );
-	insert( new Impacted( $a, $e ) );
-	sendImpactedComponentEvent( engine, $a, $e );
-end	
-
-
-/*
-rule "resolved service"
-	salience 400
-when
-	$s : Service()
-	$i : Impacted( target == $s, $cause : cause )
-	$r : Resolved( cause == $cause )
-then
-	println( " Resolving Impact " + $i );
-	retract( $i ); 
-	sendResolvedServiceEvent(engine, $s, $cause);
-end
-*/
-
-/*
 rule "clean up resolutions"
 when
-	$r : Resolved( $c : cause )
-	not( Impacted( cause == $c ) )
+	$r : ComponentEventResolved( $c : cause )
+	not( ComponentImpacted( cause == $c ) )
 then
 	println( "Cleanup up resolve " + $r );
 	retract( $r );
 end
-*/
 
 function void println(Object msg)
 {
@@ -145,7 +77,7 @@ function void println(Object msg)
 }
 
 
-function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e )
+function void sendComponentImpactedEvent( DroolsCorrelationEngine engine, Component c, Event e )
 {
 	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentImpacted", "Component Correlator" );
 	bldr.addParam("componentType", c.getType() );
@@ -157,7 +89,7 @@ function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, Compon
 }
 
 
-function void sendResolvedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e)
+function void sendComponentResolvedEvent( DroolsCorrelationEngine engine, Component c, Event e)
 {
 	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentResolved", "Component Correlator" );
 	bldr.addParam("componentType", c.getType() );

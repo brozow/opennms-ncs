@@ -198,25 +198,23 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 	@Test
     @DirtiesContext
     public void testSimpleUpDownCase() throws Exception {
-		
+
+		// 1. Assert empty workspace
         resetFacts();
-        
-        // nothing anticipated
         verifyFacts();
         
+        
+        // 2. verify Impact on ComponentDownEvent
         resetFacts();
         resetEvents();
         
         // component to request dependencies for
         Component c = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-        Event e = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
+        Event downEvent = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
         
-        ComponentDownEvent cde = new ComponentDownEvent(c, e);
-        DependenciesNeeded depsNeeded = new DependenciesNeeded(c, cde);
+        ComponentDownEvent cde = new ComponentDownEvent(c, downEvent);
         
-        Impacted impacted = new Impacted(c, e);
-
-        anticipateFacts(cde, impacted, depsNeeded);
+        anticipateFacts(cde, new ComponentImpacted(c, cde), new DependenciesNeeded(c, cde));
         
         anticipateEvent(createComponentImpactedEvent("ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17));
         
@@ -227,17 +225,31 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 		verifyEvents();
 		
 		
-		//resetFacts();
-		//resetEvents();
+		// 3. Verify resolution and memory clean up on ComponentUpEvent
+		resetFacts();
+		resetEvents();
 		
+		anticipateEvent(createComponentResolvedEvent("ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17));
 		
+		// expect all facts to be resolved
+		anticipateFacts();
 		
+        Event upEvent = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
+        ComponentUpEvent cue = new ComponentUpEvent(c, upEvent);
+        
+        insertFactAndFireRules(cue);
 		
-		
-		//verifyFacts();
-		//verifyEvents();
+		verifyFacts();
+		verifyEvents();
 	
     }
+	
+	@Test
+    @DirtiesContext
+    public void testSimpleALLRulesPropagation() throws Exception {
+
+	}	
+	// add test for two different outages on the same component
     
 	
 	private Component createComponent(String type, String foreignSource, String foreignId) {
