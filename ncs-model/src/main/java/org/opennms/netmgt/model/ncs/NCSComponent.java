@@ -237,6 +237,19 @@ public class NCSComponent {
 		getSubcomponents().remove(subComponent);
 	}
 	
+	public NCSComponent getSubcomponent(String foreignSource, String foreignId) {
+		for(NCSComponent subcomponent : getSubcomponents()) {
+			if (subcomponent.hasIdentity(foreignSource, foreignId)) {
+				return subcomponent;
+			}
+		}
+		return null;
+	}
+	
+	public boolean hasIdentity(String foreignSource, String foreignId) {
+		return m_foreignSource.equals(foreignSource) && m_foreignId.equals(foreignId);
+	}
+
     @CollectionOfElements
     @JoinTable(name="ncs_attributes")
     @MapKey(columns=@Column(name="key"))
@@ -256,8 +269,5 @@ public class NCSComponent {
 	public String removeAttribute(String key) {
 		return m_attributes.remove(key);
 	}
-	
-	
 
-    
 }

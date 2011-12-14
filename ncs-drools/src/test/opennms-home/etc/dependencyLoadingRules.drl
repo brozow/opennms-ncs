@@ -11,7 +11,6 @@ import java.util.HashSet;
 
 
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
-import org.opennms.netmgt.correlation.ncs.*;
 import org.opennms.netmgt.model.ncs.*;
 import org.opennms.netmgt.xml.event.Event;
 import org.opennms.netmgt.xml.event.Parm;
@@ -26,11 +25,41 @@ global org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine engine;
 global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationService;
 
 
+rule "assert components"
+salience 10000
+when
+	DependenciesNeeded( $c : component, $id : component.id )
+	not Component( id == $id )
+then
+	insert( $c );
+end
+
+rule "retract components"
+salience 10000
+when
+	$c: Component( )
+	not DependenciesNeeded( component == $c )
+then
+	retract( $c );
+end
+
+rule "retract dependendencies of type ALL"
+salience 20000
+when
+	$c: Component( )
+	not DependenciesNeeded( component == $c )
+	$d : DependsOn( b == $c )
+then
+	retract( $d );
+end
+
 rule "load dependencies"
 	salience 10000
-	when
-		Impacted( $c : target )
-	then
+when
+	$c : Component( )
+	exists DependenciesNeeded( component == $c )
+then
+		println("load dependencies triggered");
 		Component c = $c;
 		List<NCSComponent> list = correlationService.findComponentsThatDependOn( c.getId() );
 		for ( NCSComponent ncsParent : list ) {
@@ -58,30 +87,4 @@ function void println(Object msg)
 {
 	System.err.println(new Date() + " : " + msg);
 }
-
-
-function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e )
-{
-	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentImpacted", "Component Correlator" );
-	bldr.addParam("componentType", c.getType() );
-	bldr.addParam("componentName", c.getName() );
-	bldr.addParam("componentForeignSource", c.getForeignSource() );
-	bldr.addParam("componentForeignId", c.getForeignId() );
-	bldr.addParam("cause", e.getDbid() );
-	engine.sendEvent(bldr.getEvent());
-}
-
-
-function void sendResolvedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e)
-{
-	EventBuilder bldr = new EventBuilder( "uei.opennms.org/internal/ncs/componentResolved", "Component Correlator" );
-	bldr.addParam("componentType", c.getType() );
-	bldr.addParam("componentName", c.getName() );
-	bldr.addParam("componentForeignSource", c.getForeignSource() );
-	bldr.addParam("componentForeignId", c.getForeignId() );
-	bldr.addParam("cause", e.getDbid() );
-	engine.sendEvent(bldr.getEvent());
-}
-
-
 

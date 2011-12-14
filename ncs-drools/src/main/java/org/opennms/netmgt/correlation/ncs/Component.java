@@ -26,7 +26,21 @@ public class Component {
         } 
     }
     
-    public String getName() {
+    
+    
+    public Component(long id, String type, String name, String foreignSource,
+			String foreignId, DependencyRequirements dependenciesRequired) {
+		m_id = id;
+		m_type = type;
+		m_name = name;
+		m_foreignSource = foreignSource;
+		m_foreignId = foreignId;
+		m_dependenciesRequired = dependenciesRequired;
+	}
+
+
+
+	public String getName() {
         return m_name;
     }
 
