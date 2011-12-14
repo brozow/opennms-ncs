@@ -29,27 +29,24 @@
 package org.opennms.netmgt.correlation.ncs;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.opennms.core.utils.InetAddressUtils.addr;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.drools.FactHandle;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
 import org.opennms.netmgt.dao.DistPollerDao;
 import org.opennms.netmgt.dao.NodeDao;
 import org.opennms.netmgt.model.NetworkBuilder;
 import org.opennms.netmgt.model.OnmsDistPoller;
-import org.opennms.netmgt.model.events.EventBuilder;
 import org.opennms.netmgt.model.ncs.NCSBuilder;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
-import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
@@ -69,6 +66,10 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 	private int m_pe2NodeId;
 
 	private long m_pwCompId;
+	
+	private DroolsCorrelationEngine m_engine;
+	
+	private List<Object> m_anticipatedWorkingMemory = new ArrayList<Object>();
 	
 	@Before
 	public void setUp() {
@@ -184,97 +185,72 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 		m_pwCompId = svc.getSubcomponent("NA-ServiceElement", "9876")
 		                 .getSubcomponent("NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)")
 		                 .getId();
+		
+		// Get engine
+        m_engine = findEngineByName("dependencyLoadingRules");
+
 
 	}
-    
+	
 	@Test
 	@DirtiesContext
 	public void testSingleRequestToLoadDependenciesOfTypeAll() {
-		// Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyLoadingRules");
         
-        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
+        resetFacts();
         
-        Component c = new Component(m_pwCompId, "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", DependencyRequirements.ALL);
+        // nothing anticipated
+        verifyFacts();
+        
+        resetFacts();
+        
+        // component to request dependencies for
+        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
+
+        // this component depends on b
+        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
+
+        anticipateFacts(b, dependenciesNeeded, new DependsOn(a, b));
         
         // pretend to be a using rule that inserts the DependenciesNeeded fact
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(c, "A");
-		engine.getWorkingMemory().insert( dependenciesNeeded );
-        engine.getWorkingMemory().fireAllRules();
+		insertFactAndFireRules(dependenciesNeeded);
         
-        List<Object> memObjects = engine.getMemoryObjects();
-        
-        // remove the object we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded);
-
-        // expect the component to be inserted
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
-        
-        // expect a dependsOn object
-        assertEquals( 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        DependsOn dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-        
-        
-        Component parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
+		verifyFacts();
         
 	}
-    
+
 	@Test
 	@DirtiesContext
 	public void testSingleRequestToLoadDependenciesOfTypeAllAndWithdrawn() {
-		// Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyLoadingRules");
-        
-        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
-        
-        Component c = new Component(m_pwCompId, "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", DependencyRequirements.ALL);
-        
-        // pretend to be a using rule that inserts the DependenciesNeeded fact
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded( c, "A" );
-		FactHandle depsNeeded = engine.getWorkingMemory().insert( dependenciesNeeded );
-        engine.getWorkingMemory().fireAllRules();
-        
-        List<Object> memObjects = engine.getMemoryObjects();
-        
-        // remove the object we inserted from the list so we can avoid messing with it below
-        memObjects.remove( dependenciesNeeded );
+		
+		resetFacts();
 
-        // expect the component to be inserted
-        assertTrue( memObjects.contains( c ) );
+        // expect empty memory to start with
+        verifyFacts();
         
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
+        resetFacts();
         
-        // expect a dependsOn object
-        assertEquals( 1, memObjects.size() );
+        // component to request dependencies for
+        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
+
+        // this component depends on b
+        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
         
-        assertTrue( memObjects.get(0) instanceof DependsOn );
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+
+        // pretend to be a using rule that inserts the DependenciesNeeded fact
+		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
         
-        DependsOn dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-        
-        
-        Component parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
+		verifyFacts();
+		
+		resetFacts();
 		
 		// simulate other rules retracting the dep
-		engine.getWorkingMemory().retract( depsNeeded );
-		engine.getWorkingMemory().fireAllRules();
+		retractFactAndFireRules(depsNeededHandle);
 
-		// rules should unload the dependencies and the component
-        assertEquals("unexpected objects in working memory: "+engine.getMemoryObjects(), 0, engine.getMemorySize() );
+		// nothing anticipated... everything cleaned up
+		verifyFacts();
         
 	}
     
@@ -282,282 +258,140 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 	@Test
 	@DirtiesContext
 	public void testMultipleRequestsToLoadDependenciesOfTypeAll() {
-		// Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyLoadingRules");
+		
+		resetFacts();
+		// verify empty memory
+		verifyFacts();
+
+        resetFacts();
         
-        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
+        // component to request dependencies for
+        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
+
+        // this component depends on b
+        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
         
-        Component c = new Component(m_pwCompId, "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", DependencyRequirements.ALL);
-        
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+
         // pretend to be a using rule that inserts the DependenciesNeeded fact
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(c, "A");
-		engine.getWorkingMemory().insert( dependenciesNeeded );
-        engine.getWorkingMemory().fireAllRules();
+		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
         
-        List<Object> memObjects = engine.getMemoryObjects();
+		verifyFacts();
         
-        // remove the object we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded);
+		resetFacts();
+		
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
         
-        // expect the component to be inserted
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
+		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(b, "requestor2");
+		
+		// don't expect any further dependencies to be added
+		anticipateFacts(dependenciesNeeded2);
+		
+		insertFactAndFireRules(dependenciesNeeded2);
 
-        // expect a dependsOn object
-        assertEquals( 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        DependsOn dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-        
-        
-        Component parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
-        
-        // now reqest it again from another requestor
-		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(c, "B");
-		engine.getWorkingMemory().insert( dependenciesNeeded2 );
-        engine.getWorkingMemory().fireAllRules();
-
-        memObjects = engine.getMemoryObjects();
-        
-        // remove the objects we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded);
-        memObjects.remove(dependenciesNeeded2);
-        
-        // expect the component to have been inserted only once
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
-
-        // expect a single dependsOn object
-        assertEquals( 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-
-        parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
+		verifyFacts();
 	}
     
 
 	@Test
 	@DirtiesContext
 	public void testMultipleRequestsToLoadDependenciesOfTypeAllAndOneWithdrawn() {
-		// Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyLoadingRules");
+
+		resetFacts();
+		// verify empty memory
+		verifyFacts();
+
+        resetFacts();
         
-        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
+        // component to request dependencies for
+        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
+
+        // this component depends on b
+        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
         
-        Component c = new Component(m_pwCompId, "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", DependencyRequirements.ALL);
-        
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+
         // pretend to be a using rule that inserts the DependenciesNeeded fact
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(c, "A");
-        FactHandle depsNeeded = engine.getWorkingMemory().insert( dependenciesNeeded );
-        engine.getWorkingMemory().fireAllRules();
+		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
         
-        List<Object> memObjects = engine.getMemoryObjects();
+		verifyFacts();
         
-        // remove the object we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded);
-        
-        // expect the component to be inserted
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
-
-        // expect a dependsOn object
-        assertEquals( 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        DependsOn dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-        
-        
-        Component parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
-        
-        // now reqest it again from another requestor
-		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(c, "B");
-		FactHandle depsNeeded2 = engine.getWorkingMemory().insert(dependenciesNeeded2);
-        engine.getWorkingMemory().fireAllRules();
-
-        memObjects = engine.getMemoryObjects();
-        
-        // remove the objects we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded);
-        memObjects.remove(dependenciesNeeded2);
-        
-        // expect the component to have been inserted only once
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
-
-        // expect a single dependsOn object
-        assertEquals( 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-
-        parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
+		resetFacts();
 		
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+        
+		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(b, "requestor2");
 		
-		// simulate other rules retracting the dep
-		engine.getWorkingMemory().retract( depsNeeded );
-		engine.getWorkingMemory().fireAllRules();
+		// don't expect any further dependencies to be added
+		anticipateFacts(dependenciesNeeded2);
 		
-        memObjects = engine.getMemoryObjects();
-        
-        // remove the objects we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded2);
-        
-        // expect the component to have been inserted only once
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
+		insertFactAndFireRules(dependenciesNeeded2);
 
-        // expect a single dependsOn object
-        assertEquals( "unexpected number of objects: "+memObjects, 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
+		verifyFacts();
+		
+		resetFacts();
+		
+        anticipateFacts(dependenciesNeeded2, b, new DependsOn(a, b));
 
-        parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
-
+        retractFactAndFireRules(depsNeededHandle);
+		
+		verifyFacts();
 	}
     
 
 	@Test
 	@DirtiesContext
 	public void testMultipleRequestsToLoadDependenciesOfTypeAllAndAllWithdrawn() {
-		// Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyLoadingRules");
+
+		resetFacts();
+		// verify empty memory
+		verifyFacts();
+
+        resetFacts();
         
-        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
+        // component to request dependencies for
+        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
+
+        // this component depends on b
+        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
         
-        Component c = new Component(m_pwCompId, "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", DependencyRequirements.ALL);
-        
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+
         // pretend to be a using rule that inserts the DependenciesNeeded fact
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(c, "A");
-        FactHandle depsNeeded = engine.getWorkingMemory().insert( dependenciesNeeded );
-        engine.getWorkingMemory().fireAllRules();
+		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
         
-        List<Object> memObjects = engine.getMemoryObjects();
+		verifyFacts();
         
-        // remove the object we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded);
-        
-        // expect the component to be inserted
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
-
-        // expect a dependsOn object
-        assertEquals( 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        DependsOn dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-        
-        
-        Component parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
-        
-        // now reqest it again from another requestor
-		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(c, "B");
-		FactHandle depsNeeded2 = engine.getWorkingMemory().insert(dependenciesNeeded2);
-        engine.getWorkingMemory().fireAllRules();
-
-        memObjects = engine.getMemoryObjects();
-        
-        // remove the objects we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded);
-        memObjects.remove(dependenciesNeeded2);
-        
-        // expect the component to have been inserted only once
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
-
-        // expect a single dependsOn object
-        assertEquals( 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-
-        parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
+		resetFacts();
 		
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+        
+		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(b, "requestor2");
 		
-		// simulate other rules retracting the dep
-		engine.getWorkingMemory().retract( depsNeeded );
-		engine.getWorkingMemory().fireAllRules();
+		// don't expect any further dependencies to be added
+		anticipateFacts(dependenciesNeeded2);
 		
-        memObjects = engine.getMemoryObjects();
-        
-        // remove the objects we inserted from the list so we can avoid messing with it below
-        memObjects.remove(dependenciesNeeded2);
-        
-        // expect the component to have been inserted only once
-        assertTrue( memObjects.contains( c ));
-        
-        // remove it so we can work on the dependencies
-        memObjects.remove( c );
+		FactHandle depsNeeded2Handle = insertFactAndFireRules(dependenciesNeeded2);
 
-        // expect a single dependsOn object
-        assertEquals( "unexpected number of objects: "+memObjects, 1, memObjects.size() );
-        
-        assertTrue( memObjects.get(0) instanceof DependsOn );
-        
-        dep = (DependsOn) memObjects.get(0);
-        
-        assertSame( c, dep.getB() );
-
-        parent = dep.getA();
-		assertEquals( "NA-ServiceElement", parent.getForeignSource() );
-		assertEquals( "9876", parent.getForeignId() );
-
-		// simulate other rules retracting the dep
-		engine.getWorkingMemory().retract( depsNeeded2 );
-		engine.getWorkingMemory().fireAllRules();
+		verifyFacts();
 		
-		// rules should unload the dependencies and the component
-        assertEquals("unexpected objects in working memory: "+engine.getMemoryObjects(), 0, engine.getMemorySize() );
+		resetFacts();
+		
+        anticipateFacts(dependenciesNeeded2, b, new DependsOn(a, b));
+
+        retractFactAndFireRules(depsNeededHandle);
+		
+		verifyFacts();
+		
+		resetFacts();
+		
+		retractFactAndFireRules(depsNeeded2Handle);
+
+		// expect everything to be clean up
+		verifyFacts();
 
 	}
     // dependencies must be loaded when needed by propagation rules
@@ -576,6 +410,46 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
     // 1.  component A is down so ensure that DependentsNeeded is asserted for that component so
     // that all the necessary components are loaded.  After this is asserted then other rules
     // based on DependsOn with that component as a target can fire
+	
+	private Component createComponent(String type, String foreignSource, String foreignId) {
+		NCSComponent ncsComp = m_repository.findByTypeAndForeignIdentity(type, foreignSource, foreignId);
+		return new Component(ncsComp);
+	}
+	
+	private void resetFacts() {
+		m_anticipatedWorkingMemory.clear();
+	}
+	
+	
+	private void anticipateFacts(Object... facts) {
+		m_anticipatedWorkingMemory.addAll(Arrays.asList(facts));
+	}
+	
+	private FactHandle insertFactAndFireRules(Object fact) {
+		FactHandle handle = m_engine.getWorkingMemory().insert( fact );
+        m_engine.getWorkingMemory().fireAllRules();
+		return handle;
+	}
+	
+	private void retractFactAndFireRules(FactHandle fact) {
+		m_engine.getWorkingMemory().retract( fact );
+		m_engine.getWorkingMemory().fireAllRules();
+	}
+    
+	
+	private void verifyFacts() {
+		List<Object> memObjects = m_engine.getMemoryObjects();
+		
+		String memContents = memObjects.toString();
+		
+		for(Object anticipated : m_anticipatedWorkingMemory) {
+			assertTrue("Expected "+anticipated+" in memory but memory was "+memContents, memObjects.contains(anticipated));
+			memObjects.remove(anticipated);
+		}
+		
+		assertEquals("Unexpected objects in working memory " + memObjects, 0, memObjects.size());
+		
+	}
     
     
 }
