@@ -91,6 +91,13 @@ public class Component {
         }
         return false;
     }
+
+
+
+	@Override
+	public String toString() {
+		return "Component [name=" + m_name + "]";
+	}
     
     
 

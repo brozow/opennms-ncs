@@ -29,11 +29,12 @@ global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationServi
 rule "component impacted"
 	salience 100
 	when
-		EventComponent( $c : component, $e : event )
+		$cde: ComponentDownEvent( $c : component, $e : event )
 		not Impacted ( target == $c )
 	then
 		println( "Component '" + $c.getName() + "' is down!" );
 		insert( new Impacted( $c, $e ) );
+		insert( new DependenciesNeeded( $c, $cde ) ); 
 		sendImpactedComponentEvent( engine, $c, $e );
 end
 

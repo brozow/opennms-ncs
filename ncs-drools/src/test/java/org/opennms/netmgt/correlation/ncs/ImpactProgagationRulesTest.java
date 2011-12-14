@@ -30,6 +30,7 @@ package org.opennms.netmgt.correlation.ncs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.opennms.core.utils.InetAddressUtils.addr;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,14 +44,16 @@ import org.opennms.netmgt.dao.DistPollerDao;
 import org.opennms.netmgt.dao.NodeDao;
 import org.opennms.netmgt.model.NetworkBuilder;
 import org.opennms.netmgt.model.OnmsDistPoller;
+import org.opennms.netmgt.model.events.EventBuilder;
 import org.opennms.netmgt.model.ncs.NCSBuilder;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
+import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
+public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 	
 	@Autowired
 	private NCSComponentRepository m_repository;
@@ -61,6 +64,12 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 	@Autowired
 	private NodeDao m_nodeDao;
 
+	private int m_pe1NodeId;
+	
+	private int m_pe2NodeId;
+
+	private long m_pwCompId;
+	
 	private DroolsCorrelationEngine m_engine;
 	
 	private List<Object> m_anticipatedWorkingMemory = new ArrayList<Object>();
@@ -78,13 +87,13 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 		
 		m_nodeDao.save(bldr.getCurrentNode());
 		
-		//m_pe1NodeId = bldr.getCurrentNode().getId();
+		m_pe1NodeId = bldr.getCurrentNode().getId();
 		
 		bldr.addNode("PE2").setForeignSource("space").setForeignId("2222-PE2");
 		
 		m_nodeDao.save(bldr.getCurrentNode());
 		
-	//	m_pe2NodeId = bldr.getCurrentNode().getId();
+		m_pe2NodeId = bldr.getCurrentNode().getId();
 		
 		NCSComponent svc = new NCSBuilder("Service", "NA-Service", "123")
 		.setName("CokeP2P")
@@ -176,301 +185,139 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 		
 		m_repository.save(svc);
 		
-//		m_pwCompId = svc.getSubcomponent("NA-ServiceElement", "9876")
-//		                 .getSubcomponent("NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)")
-//		                 .getId();
+		m_pwCompId = svc.getSubcomponent("NA-ServiceElement", "9876")
+		                 .getSubcomponent("NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)")
+		                 .getId();
 		
 		// Get engine
-        m_engine = findEngineByName("dependencyLoadingRules");
+        m_engine = findEngineByName("impactPropagationRules");
 
 
 	}
 	
 	@Test
-	@DirtiesContext
-	public void testSingleRequestToLoadDependenciesOfTypeAll() {
-        
+    @DirtiesContext
+    public void testSimpleUpDownCase() throws Exception {
+		
         resetFacts();
         
         // nothing anticipated
         verifyFacts();
         
         resetFacts();
+        resetEvents();
         
         // component to request dependencies for
-        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
+        Component c = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        Event e = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
+        
+        ComponentDownEvent cde = new ComponentDownEvent(c, e);
+        DependenciesNeeded depsNeeded = new DependenciesNeeded(c, cde);
+        
+        Impacted impacted = new Impacted(c, e);
 
-        // this component depends on b
-        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
-
-        anticipateFacts(b, dependenciesNeeded, new DependsOn(a, b));
+        anticipateFacts(cde, impacted, depsNeeded);
+        
+        anticipateEvent(createComponentImpactedEvent("ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17));
         
         // pretend to be a using rule that inserts the DependenciesNeeded fact
-		insertFactAndFireRules(dependenciesNeeded);
+		insertFactAndFireRules(cde);
         
 		verifyFacts();
-        
-	}
-
-	@Test
-	@DirtiesContext
-	public void testSingleRequestToLoadDependenciesOfTypeAllAndWithdrawn() {
+		verifyEvents();
 		
-		resetFacts();
-
-        // expect empty memory to start with
-        verifyFacts();
-        
-        resetFacts();
-        
-        // component to request dependencies for
-        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
-
-        // this component depends on b
-        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
-        
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-
-        // pretend to be a using rule that inserts the DependenciesNeeded fact
-		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
-        
-		verifyFacts();
 		
-		resetFacts();
+		//resetFacts();
+		//resetEvents();
 		
-		// simulate other rules retracting the dep
-		retractFactAndFireRules(depsNeededHandle);
-
-		// nothing anticipated... everything cleaned up
-		verifyFacts();
-        
-	}
+		
+		
+		
+		
+		//verifyFacts();
+		//verifyEvents();
 	
-	@Test
-	@DirtiesContext
-	public void testSingleRequestToLoadDependenciesOfTypeAllAndWithdrawnTwice() {
-		
-		resetFacts();
-
-        // expect empty memory to start with
-        verifyFacts();
-        
-        resetFacts();
-        
-        // component to request dependencies for
-        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
-
-        // this component depends on b
-        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
-        
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-
-        // pretend to be a using rule that inserts the DependenciesNeeded fact
-		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
-        
-		verifyFacts();
-		
-		resetFacts();
-		
-		// simulate other rules retracting the dep
-		retractFactAndFireRules(depsNeededHandle);
-
-		// nothing anticipated... everything cleaned up
-		verifyFacts();
-		
-		resetFacts();
-		
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-        
-		depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
-        
-        verifyFacts();
-        
-        // Clean up facts
-        resetFacts();
-        
-        // Expecting empty list
-        anticipateFacts();
-        
-		// simulate retracting the dep
-		retractFactAndFireRules(depsNeededHandle);
-        
-        verifyFacts();
-		
-		
-        
-	}
+    }
     
-
-	@Test
-	@DirtiesContext
-	public void testMultipleRequestsToLoadDependenciesOfTypeAll() {
-		
-		resetFacts();
-		// verify empty memory
-		verifyFacts();
-
-        resetFacts();
-        
-        // component to request dependencies for
-        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
-
-        // this component depends on b
-        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
-        
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-
-        // pretend to be a using rule that inserts the DependenciesNeeded fact
-		insertFactAndFireRules(dependenciesNeeded);
-        
-		verifyFacts();
-        
-		resetFacts();
-		
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-        
-		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(b, "requestor2");
-		
-		// don't expect any further dependencies to be added
-		anticipateFacts(dependenciesNeeded2);
-		
-		insertFactAndFireRules(dependenciesNeeded2);
-
-		verifyFacts();
-	}
-    
-
-	@Test
-	@DirtiesContext
-	public void testMultipleRequestsToLoadDependenciesOfTypeAllAndOneWithdrawn() {
-
-		resetFacts();
-		// verify empty memory
-		verifyFacts();
-
-        resetFacts();
-        
-        // component to request dependencies for
-        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
-
-        // this component depends on b
-        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
-        
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-
-        // pretend to be a using rule that inserts the DependenciesNeeded fact
-		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
-        
-		verifyFacts();
-        
-		resetFacts();
-		
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-        
-		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(b, "requestor2");
-		
-		// don't expect any further dependencies to be added
-		anticipateFacts(dependenciesNeeded2);
-		
-		insertFactAndFireRules(dependenciesNeeded2);
-
-		verifyFacts();
-		
-		resetFacts();
-		
-        anticipateFacts(dependenciesNeeded2, b, new DependsOn(a, b));
-
-        retractFactAndFireRules(depsNeededHandle);
-		
-		verifyFacts();
-	}
-    
-
-	@Test
-	@DirtiesContext
-	public void testMultipleRequestsToLoadDependenciesOfTypeAllAndAllWithdrawn() {
-
-		resetFacts();
-		// verify empty memory
-		verifyFacts();
-
-        resetFacts();
-        
-        // component to request dependencies for
-        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
-        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
-
-        // this component depends on b
-        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
-        
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-
-        // pretend to be a using rule that inserts the DependenciesNeeded fact
-		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
-        
-		verifyFacts();
-        
-		resetFacts();
-		
-        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
-        
-		DependenciesNeeded dependenciesNeeded2 = new DependenciesNeeded(b, "requestor2");
-		
-		// don't expect any further dependencies to be added
-		anticipateFacts(dependenciesNeeded2);
-		
-		FactHandle depsNeeded2Handle = insertFactAndFireRules(dependenciesNeeded2);
-
-		verifyFacts();
-		
-		resetFacts();
-		
-        anticipateFacts(dependenciesNeeded2, b, new DependsOn(a, b));
-
-        retractFactAndFireRules(depsNeededHandle);
-		
-		verifyFacts();
-		
-		resetFacts();
-		
-		retractFactAndFireRules(depsNeeded2Handle);
-
-		// expect everything to be clean up
-		verifyFacts();
-
-	}
-    // dependencies must be loaded when needed by propagation rules
-    // loaded deps needed by multiple events should not load more than once
-    // deps no longer needed by one event should remain loaded if need by others
-    // deps no longer needed by any event should be unloaded
-
-
-	// two kinds of needs... DependentsNeeded meaning I need to ensure the things that depend on
-    // component A are loaded
-    
-    // also need a DependenciesNeeded meaning I need to ensure that the things that component A
-    // depends on are loaded.
-    
-    // to imagine the use cases...
-    // 1.  component A is down so ensure that DependentsNeeded is asserted for that component so
-    // that all the necessary components are loaded.  After this is asserted then other rules
-    // based on DependsOn with that component as a target can fire
 	
 	private Component createComponent(String type, String foreignSource, String foreignId) {
 		NCSComponent ncsComp = m_repository.findByTypeAndForeignIdentity(type, foreignSource, foreignId);
 		return new Component(ncsComp);
 	}
 	
-	private void resetFacts() {
+	private Event createComponentImpactedEvent( String type, String name, String foreignSource, String foreignId, int cause ) {
+        
+        return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Component Correlator")
+        .addParam("componentType", type )
+        .addParam("componentName", name )
+        .addParam("componentForeignSource", foreignSource )
+        .addParam("componentForeignId", foreignId )
+        .addParam("cause", cause )
+        .getEvent();
+    }
+	
+	private Event createComponentResolvedEvent(String type, String name, String foreignSource, String foreignId, int cause) {
+        return new EventBuilder("uei.opennms.org/internal/ncs/componentResolved", "Component Correlator")
+        .addParam("componentType", type )
+        .addParam("componentName", name)
+        .addParam("componentForeignSource", foreignSource )
+        .addParam("componentForeignId", foreignId )
+        .addParam("cause", cause )
+        .getEvent();
+    }
+
+    private Event createMplsLspPathDownEvent( int dbId, int nodeid, String ipaddr, String lspname ) {
+        
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Test")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("mplsLspName", lspname )
+                .getEvent();
+        
+        event.setDbid(dbId);
+		return event;
+    }
+    
+    private Event createMplsLspPathUpEvent( int dbId, int nodeid, String ipaddr, String lspname ) {
+        
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp", "Drools")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("mplsLspName", lspname )
+                .getEvent();
+        event.setDbid(dbId);
+		return event;
+    }
+
+
+    private Event createVpnPwDownEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
+		
+		Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Test")
+				.setNodeid(nodeid)
+				.setInterface( addr( ipaddr ) )
+				.addParam("jnxVpnPwType", pwtype )
+				.addParam("jnxVpnPwName", pwname )
+				.getEvent();
+		event.setDbid(dbId);
+		return event;
+	}
+
+    private Event createVpnPwUpEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
+        
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Test")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("jnxVpnPwType", pwtype )
+                .addParam("jnxVpnPwName", pwname )
+                .getEvent();
+        event.setDbid(dbId);
+		return event;
+    }
+
+    private void resetFacts() {
 		m_anticipatedWorkingMemory.clear();
 	}
-	
-	
+    
 	private void anticipateFacts(Object... facts) {
 		m_anticipatedWorkingMemory.addAll(Arrays.asList(facts));
 	}
@@ -500,6 +347,19 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 		assertEquals("Unexpected objects in working memory " + memObjects, 0, memObjects.size());
 		
 	}
+	
+	private void resetEvents() {
+		getAnticipator().reset();
+	}
     
+	private void anticipateEvent(Event... events) {
+		for(Event event : events) {
+			getAnticipator().anticipateEvent(event);
+		}
+	}
+	
+	private void verifyEvents() {
+		getAnticipator().verifyAnticipated();
+	}
     
 }

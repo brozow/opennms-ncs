@@ -29,7 +29,9 @@ public class Resolved {
 
 	@Override
 	public String toString() {
-		return "Resolved[ cause=" + m_cause + ", resolution="
+		return "Resolved[ " +
+				"cause=" + m_cause + 
+				", resolution="
 				+ m_resolution + " ]";
 	}
 	

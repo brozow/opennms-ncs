@@ -31,9 +31,9 @@ public class EventComponent {
 
 	@Override
 	public String toString() {
-		return "ComponentUpEvent [" +
+		return "EventComponent [" +
 				"component=" + m_component + 
-				", event=" + m_event + 
+				", event=" + m_event.getUei() + "(" + m_event.getDbid() + ")" +
 				"]";
 	}
 
