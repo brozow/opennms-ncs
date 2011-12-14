@@ -253,6 +253,62 @@ public class DependencyLoadingRulesTest extends CorrelationRulesTestCase {
 		verifyFacts();
         
 	}
+	
+	@Test
+	@DirtiesContext
+	public void testSingleRequestToLoadDependenciesOfTypeAllAndWithdrawnTwice() {
+		
+		resetFacts();
+
+        // expect empty memory to start with
+        verifyFacts();
+        
+        resetFacts();
+        
+        // component to request dependencies for
+        Component b = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        DependenciesNeeded dependenciesNeeded = new DependenciesNeeded(b, "requestor1");
+
+        // this component depends on b
+        Component a = createComponent("ServiceElement", "NA-ServiceElement", "9876");
+        
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+
+        // pretend to be a using rule that inserts the DependenciesNeeded fact
+		FactHandle depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
+        
+		verifyFacts();
+		
+		resetFacts();
+		
+		// simulate other rules retracting the dep
+		retractFactAndFireRules(depsNeededHandle);
+
+		// nothing anticipated... everything cleaned up
+		verifyFacts();
+		
+		resetFacts();
+		
+        anticipateFacts(dependenciesNeeded, b, new DependsOn(a, b));
+        
+		depsNeededHandle = insertFactAndFireRules(dependenciesNeeded);
+        
+        verifyFacts();
+        
+        // Clean up facts
+        resetFacts();
+        
+        // Expecting empty list
+        anticipateFacts();
+        
+		// simulate retracting the dep
+		retractFactAndFireRules(depsNeededHandle);
+        
+        verifyFacts();
+		
+		
+        
+	}
     
 
 	@Test
