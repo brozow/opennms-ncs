@@ -71,6 +71,19 @@ then
 	retract( $r );
 end
 
+rule "propagate impact"
+	when
+		ComponentImpacted( $b : target, $cde : cause )
+		DependsOn( $parent : a, b == $b )
+	
+	then
+		println( "Parent component '" + $parent.getName() + "' is down!" );
+		insert( new ComponentImpacted( $parent, $cde ) );
+		insert( new DependenciesNeeded( $parent, $cde ) ); 
+		sendComponentImpactedEvent( engine, $parent, $cde.getEvent() );
+	
+end
+
 function void println(Object msg)
 {
 	System.err.println(new Date() + " : " + msg);

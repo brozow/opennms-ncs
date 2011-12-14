@@ -36,6 +36,7 @@ import static org.opennms.core.utils.InetAddressUtils.addr;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
 import org.opennms.netmgt.dao.DistPollerDao;
@@ -189,6 +190,18 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		testEventMapping(event, ComponentDownEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
 
     }
+	
+	@Test
+	@Ignore( "Not ready for this yet")
+    @DirtiesContext
+    public void testDupPwDown() throws Exception {
+		
+		Event event = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
+		Event event2 = createVpnPwDownEvent(18, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
+
+		testEventDup(event, event2, ComponentDownEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+
+    }
 
 
 	@Test
@@ -245,6 +258,57 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		assertEquals(componentType, component.getType());
 		assertEquals(componentForeignSource, component.getForeignSource());
 		assertEquals(componentForeignId, component.getForeignId());
+	}
+	
+	private void testEventDup(Event event, Event event2, Class<? extends ComponentEvent> componentEventClass,	String componentType, String componentForeignSource, String componentForeignId) {
+		// Get engine
+        DroolsCorrelationEngine engine = findEngineByName("eventMappingRules");
+        
+        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
+        
+		engine.correlate( event );
+		
+		List<Object> memObjects = engine.getMemoryObjects();
+
+		assertEquals("Unexpected size of workingMemory " + memObjects, 1, memObjects.size());
+
+		Object eventObj = memObjects.get(0);
+
+		assertTrue( componentEventClass.isInstance(eventObj) );
+		assertTrue( eventObj instanceof ComponentEvent );
+		
+		ComponentEvent c = (ComponentEvent) eventObj;
+		
+		assertSame(event, c.getEvent());
+		
+		Component component = c.getComponent();
+		assertEquals(componentType, component.getType());
+		assertEquals(componentForeignSource, component.getForeignSource());
+		assertEquals(componentForeignId, component.getForeignId());
+		
+		// Adding a copy of the event should not add to working memory
+		engine.correlate( event2 );
+		
+		memObjects = engine.getMemoryObjects();
+
+		assertEquals("Unexpected size of workingMemory " + memObjects, 1, memObjects.size());
+
+		eventObj = memObjects.get(0);
+
+		assertTrue( componentEventClass.isInstance(eventObj) );
+		assertTrue( eventObj instanceof ComponentEvent );
+		
+		c = (ComponentEvent) eventObj;
+		
+		assertSame(event, c.getEvent());
+		
+		component = c.getComponent();
+		assertEquals(componentType, component.getType());
+		assertEquals(componentForeignSource, component.getForeignSource());
+		assertEquals(componentForeignId, component.getForeignId());
+		
+		
+		
 	}
     
 

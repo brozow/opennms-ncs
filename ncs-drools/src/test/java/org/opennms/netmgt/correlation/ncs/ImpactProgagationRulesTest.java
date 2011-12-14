@@ -197,7 +197,7 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 	
 	@Test
     @DirtiesContext
-    public void testSimpleUpDownCase() throws Exception {
+    public void testSimpleDownUpCase() throws Exception {
 
 		// 1. Assert empty workspace
         resetFacts();
@@ -234,7 +234,7 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 		// expect all facts to be resolved
 		anticipateFacts();
 		
-        Event upEvent = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
+        Event upEvent = createVpnPwUpEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
         ComponentUpEvent cue = new ComponentUpEvent(c, upEvent);
         
         insertFactAndFireRules(cue);
@@ -244,11 +244,73 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 	
     }
 	
+	
+	
 	@Test
     @DirtiesContext
     public void testSimpleALLRulesPropagation() throws Exception {
+		// 1. Assert empty workspace
+        resetFacts();
+        verifyFacts();
+        
+        
+        // 2. verify Impact on ComponentDownEvent
+        resetFacts();
+        resetEvents();
+        
+        // component to request dependencies for
+        Component c = createComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)");
+        Event downEvent = createVpnPwDownEvent(17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
+        
+        ComponentDownEvent cde = new ComponentDownEvent(c, downEvent);
+        
+        // this component depends on c
+        Component parent = createComponent("ServiceElement", "NA-ServiceElement", "9876");
+        
+        DependsOn dep = new DependsOn( parent, c );
+        ComponentImpacted componentImpacted = new ComponentImpacted(c, cde);
+        
+		anticipateFacts( dep, componentImpacted, new ComponentImpacted( parent, cde ), new DependenciesNeeded(parent, cde));
+        
+        anticipateEvent(createComponentImpactedEvent("ServiceElement", "PE2:SE1", "NA-SvcElement", "9876", 17));
+        
+        // Insert facts and fire rules
+		FactHandle impactHandle = m_engine.getWorkingMemory().insert( componentImpacted );
+		FactHandle depHandle = m_engine.getWorkingMemory().insert( dep );
+		m_engine.getWorkingMemory().fireAllRules();
+        
+        // pretend to be a using rule that inserts the DependenciesNeeded fact
+		verifyFacts();
+		verifyEvents();
+		
+		
+		// 3. Verify resolution and memory clean up on ComponentUpEvent
+		resetFacts();
+		resetEvents();
+		
+		//anticipateEvent(createComponentResolvedEvent("ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17));
+		anticipateEvent(createComponentResolvedEvent("ServiceElement", "PE2:SE1", "NA-SvcElement", "9876", 17));
+		
+		// expect all facts to be resolved
+		anticipateFacts();
+		
+        Event upEvent = createVpnPwUpEvent(18, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50");
+        ComponentUpEvent cue = new ComponentUpEvent(c, upEvent);
+        
+        m_engine.getWorkingMemory().retract(impactHandle);
+        m_engine.getWorkingMemory().retract(depHandle);
+        m_engine.getWorkingMemory().insert(new ComponentEventResolved(cde, cue) );
+        
+        m_engine.getWorkingMemory().fireAllRules();
+        
+       // insertFactAndFireRules(cue);
+		
+		verifyFacts();
+		verifyEvents();
+		
 
-	}	
+	}
+	
 	// add test for two different outages on the same component
     
 	

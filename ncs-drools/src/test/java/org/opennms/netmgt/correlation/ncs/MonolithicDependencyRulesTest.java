@@ -28,10 +28,8 @@
 
 package org.opennms.netmgt.correlation.ncs;
 
-import static org.junit.Assert.assertEquals;
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
-import org.drools.command.assertion.AssertEquals;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -50,7 +48,7 @@ import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
-public class DependencyRulesTest extends CorrelationRulesTestCase {
+public class MonolithicDependencyRulesTest extends CorrelationRulesTestCase {
 	
 	@Autowired
 	NCSComponentRepository m_repository;
@@ -185,7 +183,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     public void testDependencyAnyRules() throws Exception {
         
         // Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+        DroolsCorrelationEngine engine = findEngineByName("monolithicDependencyRules");
         
         // Anticipate component lspA down event
         getAnticipator().reset();
@@ -242,7 +240,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     public void testSimpleUpDownCase() throws Exception {
 		
         // Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+        DroolsCorrelationEngine engine = findEngineByName("monolithicDependencyRules");
 		
         
         // Antecipate down event
@@ -281,10 +279,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         engine.correlate( event );
         
         // Check up event
-        getAnticipator().verifyAnticipated();
-        
-        // Memory should be clean!
-        assertEquals( 0, engine.getMemorySize() );
+        getAnticipator().verifyAnticipated();	
 	
     }
     
@@ -294,7 +289,7 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     public void testMultipleDownAndSingleUpCase() throws Exception {
         
         // Get engine
-        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+        DroolsCorrelationEngine engine = findEngineByName("monolithicDependencyRules");
         
         // Anticipate down event
         getAnticipator().reset();
@@ -334,14 +329,6 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         // Check up event
         getAnticipator().verifyAnticipated();	
 	
-    }
-    
-    @Test
-    @DirtiesContext
-    @Ignore("not yet implemented")
-    public void testTwoOutagesCase() throws Exception {
-    	// Test what happens to the parent when there are two children impacted one is resolved
-    	
     }
     
     // dependencies must be loaded when needed by propagation rules
