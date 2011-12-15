@@ -338,10 +338,61 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     
     @Test
     @DirtiesContext
-    @Ignore("not yet implemented")
+    @Ignore("Test is failing")
     public void testTwoOutagesCase() throws Exception {
     	// Test what happens to the parent when there are two children impacted one is resolved
-    	
+        
+        // Get engine
+        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+        
+        // Antecipate 1st down event
+        getAnticipator().reset();
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 17 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 17 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
+		
+		// Generate down event
+		Event event = createVpnPwDownEvent( m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" );
+		event.setDbid(17);
+		System.err.println("SENDING VpnPwDown EVENT!!");
+		engine.correlate( event );
+		
+		// Check down event
+		getAnticipator().verifyAnticipated();
+		
+        // Antecipate 2nd down event
+        getAnticipator().reset();
+        anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 18 ) );
+        anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 18 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18 ) );
+        
+        // Generate another down event for the other PE
+		event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.2", "5", "ge-3/1/4.50" );
+		event.setDbid(18);
+		System.err.println("SENDING 2nd VpnPwDown EVENT!!");
+		engine.correlate( event );
+		
+		// Check 2nd down event
+		getAnticipator().verifyAnticipated();
+		
+		// Anticipate up event
+        getAnticipator().reset();
+        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 17 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 17 ) );
+        //anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
+        
+        // Generate up event
+        event = createVpnPwUpEvent( m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" );
+        event.setDbid(19);
+        System.err.println("SENDING VpnPwUp EVENT!!");
+        engine.correlate( event );
+        
+        // Check up event
+        getAnticipator().verifyAnticipated();
+        
+        // Memory should be clean!
+        assertEquals( 0, engine.getMemorySize() );
+        
     }
     
     // dependencies must be loaded when needed by propagation rules
