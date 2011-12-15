@@ -51,135 +51,135 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 
 public class DependencyRulesTest extends CorrelationRulesTestCase {
-	
-	@Autowired
-	NCSComponentRepository m_repository;
-	
-	@Autowired
-	DistPollerDao m_distPollerDao;
-	
-	@Autowired
-	NodeDao m_nodeDao;
 
-	int m_pe1NodeId;
-	
-	int m_pe2NodeId;
+    @Autowired
+    NCSComponentRepository m_repository;
 
-	@Before
-	public void setUp() {
-		
-		OnmsDistPoller distPoller = new OnmsDistPoller("localhost", "127.0.0.1");
-		
-		m_distPollerDao.save(distPoller);
-		
-		
-		NetworkBuilder bldr = new NetworkBuilder(distPoller);
-		bldr.addNode("PE1").setForeignSource("space").setForeignId("1111-PE1");
-		
-		m_nodeDao.save(bldr.getCurrentNode());
-		
-		m_pe1NodeId = bldr.getCurrentNode().getId();
-		
-		bldr.addNode("PE2").setForeignSource("space").setForeignId("2222-PE2");
-		
-		m_nodeDao.save(bldr.getCurrentNode());
-		
-		m_pe2NodeId = bldr.getCurrentNode().getId();
-		
-		NCSComponent svc = new NCSBuilder("Service", "NA-Service", "123")
-		.setName("CokeP2P")
-		.pushComponent("ServiceElement", "NA-ServiceElement", "8765")
-			.setName("PE1:SE1")
-			.setNodeIdentity("space", "1111-PE1")
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnIf")
-				.setName("jnxVpnIf")
-				.setNodeIdentity("space", "1111-PE1")
-				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
-				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
-				.setAttribute("jnxVpnIfType", "5")
-				.setAttribute("jnxVpnIfName", "ge-1/0/2.50")
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:link")
-					.setName("link")
-					.setNodeIdentity("space", "1111-PE1")
-					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
-					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
-					.setAttribute("linkName", "ge-1/0/2")
-				.popComponent()
-			.popComponent()
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)")
-				.setName("jnxVpnPw-vcid(50)")
-				.setNodeIdentity("space", "1111-PE1")
-				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
-				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
-				.setAttribute("jnxVpnPwType", "5")
-				.setAttribute("jnxVpnPwName", "ge-1/0/2.50")
-				.setDependenciesRequired(DependencyRequirements.ANY)
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2")
-					.setName("lspA-PE1-PE2")
-					.setNodeIdentity("space", "1111-PE1")
-					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
-					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
-					.setAttribute("mplsLspName", "lspA-PE1-PE2")
-				.popComponent()
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspB-PE1-PE2")
-					.setName("lspB-PE1-PE2")
-					.setNodeIdentity("space", "1111-PE1")
-					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
-					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
-					.setAttribute("mplsLspName", "lspB-PE1-PE2")
-				.popComponent()
-			.popComponent()
-		.popComponent()
-		.pushComponent("ServiceElement", "NA-ServiceElement", "9876")
-			.setName("PE2:SE1")
-			.setNodeIdentity("space", "2222-PE2")
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnIf")
-				.setName("jnxVpnIf")
-				.setNodeIdentity("space", "2222-PE2")
-				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
-				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
-				.setAttribute("jnxVpnIfType", "5")
-				.setAttribute("jnxVpnIfName", "ge-3/1/4.50")
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:link")
-					.setName("link")
-					.setNodeIdentity("space", "2222-PE2")
-					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
-					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
-					.setAttribute("linkName", "ge-3/1/4")
-				.popComponent()
-			.popComponent()
-			.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)")
-				.setName("jnxVpnPw-vcid(50)")
-				.setNodeIdentity("space", "2222-PE2")
-				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
-				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
-				.setAttribute("jnxVpnPwType", "5")
-				.setAttribute("jnxVpnPwName", "ge-3/1/4.50")
-				.setDependenciesRequired(DependencyRequirements.ANY)
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1")
-					.setName("lspA-PE2-PE1")
-					.setNodeIdentity("space", "2222-PE2")
-					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
-					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
-					.setAttribute("mplsLspName", "lspA-PE2-PE1")
-				.popComponent()
-				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspB-PE2-PE1")
-					.setName("lspB-PE2-PE1")
-					.setNodeIdentity("space", "2222-PE2")
-					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
-					.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
-					.setAttribute("mplsLspName", "lspB-PE2-PE1")
-				.popComponent()
-			.popComponent()
-		.popComponent()
-		.get();
-		
-		m_repository.save(svc);
+    @Autowired
+    DistPollerDao m_distPollerDao;
 
-	}
+    @Autowired
+    NodeDao m_nodeDao;
+
+    int m_pe1NodeId;
+
+    int m_pe2NodeId;
+
+    @Before
+    public void setUp() {
+
+        OnmsDistPoller distPoller = new OnmsDistPoller("localhost", "127.0.0.1");
+
+        m_distPollerDao.save(distPoller);
+
+
+        NetworkBuilder bldr = new NetworkBuilder(distPoller);
+        bldr.addNode("PE1").setForeignSource("space").setForeignId("1111-PE1");
+
+        m_nodeDao.save(bldr.getCurrentNode());
+
+        m_pe1NodeId = bldr.getCurrentNode().getId();
+
+        bldr.addNode("PE2").setForeignSource("space").setForeignId("2222-PE2");
+
+        m_nodeDao.save(bldr.getCurrentNode());
+
+        m_pe2NodeId = bldr.getCurrentNode().getId();
+
+        NCSComponent svc = new NCSBuilder("Service", "NA-Service", "123")
+            .setName("CokeP2P")
+            .pushComponent("ServiceElement", "NA-ServiceElement", "8765")
+                .setName("PE1:SE1")
+                .setNodeIdentity("space", "1111-PE1")
+                .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnIf")
+                    .setName("jnxVpnIf")
+                    .setNodeIdentity("space", "1111-PE1")
+                    .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
+                    .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
+                    .setAttribute("jnxVpnIfType", "5")
+                    .setAttribute("jnxVpnIfName", "ge-1/0/2.50")
+                    .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:link")
+                        .setName("link")
+                        .setNodeIdentity("space", "1111-PE1")
+                        .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
+                        .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
+                        .setAttribute("linkName", "ge-1/0/2")
+                    .popComponent()
+                .popComponent()
+                .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)")
+                    .setName("jnxVpnPw-vcid(50)")
+                    .setNodeIdentity("space", "1111-PE1")
+                    .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
+                    .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
+                    .setAttribute("jnxVpnPwType", "5")
+                    .setAttribute("jnxVpnPwName", "ge-1/0/2.50")
+                    .setDependenciesRequired(DependencyRequirements.ANY)
+                    .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2")
+                        .setName("lspA-PE1-PE2")
+                        .setNodeIdentity("space", "1111-PE1")
+                        .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+                        .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+                        .setAttribute("mplsLspName", "lspA-PE1-PE2")
+                    .popComponent()
+                    .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspB-PE1-PE2")
+                        .setName("lspB-PE1-PE2")
+                        .setNodeIdentity("space", "1111-PE1")
+                        .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+                        .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+                        .setAttribute("mplsLspName", "lspB-PE1-PE2")
+                    .popComponent()
+                .popComponent()
+            .popComponent()
+            .pushComponent("ServiceElement", "NA-ServiceElement", "9876")
+                .setName("PE2:SE1")
+                .setNodeIdentity("space", "2222-PE2")
+                .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnIf")
+                    .setName("jnxVpnIf")
+                    .setNodeIdentity("space", "2222-PE2")
+                    .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
+                    .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
+                    .setAttribute("jnxVpnIfType", "5")
+                    .setAttribute("jnxVpnIfName", "ge-3/1/4.50")
+                    .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:link")
+                        .setName("link")
+                        .setNodeIdentity("space", "2222-PE2")
+                        .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
+                        .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/linkDown")
+                        .setAttribute("linkName", "ge-3/1/4")
+                    .popComponent()
+                .popComponent()
+                .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)")
+                    .setName("jnxVpnPw-vcid(50)")
+                    .setNodeIdentity("space", "2222-PE2")
+                    .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
+                    .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
+                    .setAttribute("jnxVpnPwType", "5")
+                    .setAttribute("jnxVpnPwName", "ge-3/1/4.50")
+                    .setDependenciesRequired(DependencyRequirements.ANY)
+                    .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1")
+                        .setName("lspA-PE2-PE1")
+                        .setNodeIdentity("space", "2222-PE2")
+                        .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+                        .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+                        .setAttribute("mplsLspName", "lspA-PE2-PE1")
+                    .popComponent()
+                    .pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspB-PE2-PE1")
+                        .setName("lspB-PE2-PE1")
+                        .setNodeIdentity("space", "2222-PE2")
+                        .setUpEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp")
+                        .setDownEventUei("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown")
+                        .setAttribute("mplsLspName", "lspB-PE2-PE1")
+                    .popComponent()
+                .popComponent()
+            .popComponent()
+            .get();
+
+        m_repository.save(svc);
+
+    }
     
-	
-	@Test
+
+    @Test
     @DirtiesContext
     @Ignore("Non Deterministic!!!")
     public void testDependencyAnyRules() throws Exception {
@@ -190,211 +190,188 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         // Anticipate component lspA down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "lspA-PE1-PE2", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 17 ) );
+
         // Generate down event
-		Event event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
-		event.setDbid(17);
-		System.err.println("SENDING MplsLspPathDown on LspA EVENT!!");
-		engine.correlate( event );
-		// Check down event
-		getAnticipator().verifyAnticipated();
-		
-		
-		// Anticipate component lspB down event
-		// Parent should go down too
+        System.err.println("SENDING MplsLspPathDown on LspA EVENT!!");
+        engine.correlate( createMplsLspPathDownEvent( 17, m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" ) );
+
+        // Check lspA component impacted
+        getAnticipator().verifyAnticipated();
+
+        // Anticipate component lspB down event
+        // Parent should go down too
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "lspB-PE1-PE2", "NA-SvcElemComp", "8765:lspB-PE1-PE2", 18 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 18 ) );
         anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18) );
         
-        //anticipate(  createComponentImpactedEvent( "Service", "NA-Service", "123", 17 ) );
         // Generate down event
-        event = createMplsLspPathDownEvent( m_pe1NodeId, "10.1.1.1", "lspB-PE1-PE2" );
-        event.setDbid(18);
         System.err.println("SENDING MplsLspPathDown on LspB EVENT!!");
-        engine.correlate( event );
-        // Check down event
+        engine.correlate( createMplsLspPathDownEvent( 18, m_pe1NodeId, "10.1.1.1", "lspB-PE1-PE2" ) );
+
+        // verify components were impacted
         getAnticipator().verifyAnticipated();
-		
-        
-		// Anticipate up event
+
+        // Anticipate impacted resolved when we send up event
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "lspA-PE1-PE2", "NA-SvcElemComp", "8765:lspA-PE1-PE2", 18 ) );
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 18 ) );
         anticipate(  createComponentResolvedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 18 ) );
         anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 18) );
-        
-        //Generate up event
-        event = createMplsLspPathUpEvent( m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" );
-        event.setDbid(17);
-        System.err.println("SENDING MplsLspPathUp on LspA EVENT!!");
-        engine.correlate( event );
-        
-        // Check up event
-        getAnticipator().verifyAnticipated();	
-        
-	
-    }
-    
 
-	@Test
+        // Generate up event
+        System.err.println("SENDING MplsLspPathUp on LspA EVENT!!");
+        engine.correlate( createMplsLspPathUpEvent( 19, m_pe1NodeId, "10.1.1.1", "lspA-PE1-PE2" ) );
+
+        // verify components are resolved
+        getAnticipator().verifyAnticipated();	
+
+
+    }
+
+
+    @Test
     @DirtiesContext
-    public void testSimpleUpDownCase() throws Exception {
-		
+    public void testSimpleDownUpCase() throws Exception {
+
         // Get engine
         DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
-		
-        
+
+
         // Antecipate down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
         anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-		
-		// Generate down event
-		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-		event.setDbid(17);
-		System.err.println("SENDING VpnPwDown EVENT!!");
-		engine.correlate( event );
-		
-		// Check down event
-		getAnticipator().verifyAnticipated();
-		
-		// Generate additional down event - nothing should happen
-//		getAnticipator().reset();
-//        event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-//        event.setDbid(18);
+
+        // Generate down event
+        System.err.println("SENDING VpnPwDown EVENT!!");
+        engine.correlate( createVpnPwDownEvent( 17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
+
+        // Check down event
+        getAnticipator().verifyAnticipated();
+
+        // Generate additional down event - nothing should happen
+//        getAnticipator().reset();
 //        System.err.println("SENDING VpnPwDown EVENT!!");
-//        engine.correlate( event );
+//        engine.correlate( createVpnPwDownEvent( 18, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
 //        getAnticipator().verifyAnticipated();
-		
-		// Anticipate up event
+
+        // Anticipate up event
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentResolvedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
         anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
         
         // Generate up event
-        event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-        event.setDbid(17);
         System.err.println("SENDING VpnPwUp EVENT!!");
-        engine.correlate( event );
+        engine.correlate( createVpnPwUpEvent( 19, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
         
         // Check up event
         getAnticipator().verifyAnticipated();
-        
+
         // Memory should be clean!
         assertEquals( 0, engine.getMemorySize() );
-	
+
     }
-    
+
     @Test
     @DirtiesContext
     @Ignore("not yet implemented")
     public void testMultipleDownAndSingleUpCase() throws Exception {
-        
+
         // Get engine
         DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
-        
+
         // Anticipate down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
         anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-		
-		// Generate down event
-		Event event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-		event.setDbid(17);
-		System.err.println("SENDING VpnPwDown EVENT!!");
-		engine.correlate( event );
-		
-		// Check down event
-		getAnticipator().verifyAnticipated();
-		
-		// Generate additional down event - nothing should happen
-		getAnticipator().reset();
-        event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-        event.setDbid(18);
+
+        // Generate down event
         System.err.println("SENDING VpnPwDown EVENT!!");
-        engine.correlate( event );
+        engine.correlate( createVpnPwDownEvent( 17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
+
+        // Check down event
         getAnticipator().verifyAnticipated();
-		
-		// Anticipate up event
+
+        // Generate additional down event - nothing should happen
+        getAnticipator().reset();
+        System.err.println("SENDING VpnPwDown EVENT!!");
+        engine.correlate( createVpnPwDownEvent( 18, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
+
+        getAnticipator().verifyAnticipated();
+
+        // Anticipate up event
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentResolvedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 17 ) );
         anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-        
+
         // Generate up event
-        event = createVpnPwUpEvent( m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" );
-        event.setDbid(17);
         System.err.println("SENDING VpnPwUp EVENT!!");
-        engine.correlate( event );
-        
+        engine.correlate( createVpnPwUpEvent( 19, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
+
         // Check up event
-        getAnticipator().verifyAnticipated();	
-	
+        getAnticipator().verifyAnticipated();
+
     }
-    
+
     @Test
     @DirtiesContext
     @Ignore("Test is failing")
     public void testTwoOutagesCase() throws Exception {
-    	// Test what happens to the parent when there are two children impacted one is resolved
-        
+        // Test what happens to the parent when there are two children impacted one is resolved
+
         // Get engine
         DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
-        
+
         // Antecipate 1st down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 17 ) );
         anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-		
-		// Generate down event
-		Event event = createVpnPwDownEvent( m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" );
-		event.setDbid(17);
-		System.err.println("SENDING VpnPwDown EVENT!!");
-		engine.correlate( event );
-		
-		// Check down event
-		getAnticipator().verifyAnticipated();
-		
+
+        // Generate down event
+        System.err.println("SENDING VpnPwDown EVENT!!");
+        engine.correlate( createVpnPwDownEvent( 17, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" ) );
+
+        // Check down event
+        getAnticipator().verifyAnticipated();
+
         // Antecipate 2nd down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 18 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 18 ) );
         anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18 ) );
-        
+
         // Generate another down event for the other PE
-		event = createVpnPwDownEvent( m_pe2NodeId, "10.1.1.2", "5", "ge-3/1/4.50" );
-		event.setDbid(18);
-		System.err.println("SENDING 2nd VpnPwDown EVENT!!");
-		engine.correlate( event );
-		
-		// Check 2nd down event
-		getAnticipator().verifyAnticipated();
-		
-		// Anticipate up event
+        System.err.println("SENDING 2nd VpnPwDown EVENT!!");
+        engine.correlate( createVpnPwDownEvent( 18, m_pe2NodeId, "10.1.1.2", "5", "ge-3/1/4.50" ) );
+
+        // Check 2nd down event
+        getAnticipator().verifyAnticipated();
+
+        // Anticipate up event
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentResolvedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 17 ) );
         //anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
-        
+
         // Generate up event
-        event = createVpnPwUpEvent( m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" );
-        event.setDbid(19);
         System.err.println("SENDING VpnPwUp EVENT!!");
-        engine.correlate( event );
-        
+        engine.correlate( createVpnPwUpEvent( 19, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" ) );
+
         // Check up event
         getAnticipator().verifyAnticipated();
-        
+
         // Memory should be clean!
         assertEquals( 0, engine.getMemorySize() );
-        
+
     }
-    
+
     // dependencies must be loaded when needed by propagation rules
     // loaded deps needed by multiple events should not load more than once
     // deps no longer needed by one event should remain loaded if need by others
@@ -408,107 +385,117 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
     // map various events to outages and resolutions
     // ignore duplicate cause events
     // ignore duplicate resolution events
-    
-    private Event createMplsLspPathDownEvent( int nodeid, String ipaddr, String lspname ) {
-        
-        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Test")
-                .setNodeid(nodeid)
-                .setInterface( addr( ipaddr ) )
-                .addParam("mplsLspName", lspname )
-                .getEvent();
+
+    private Event createMplsLspPathDownEvent( int dbId, int nodeid, String ipaddr, String lspname ) {
+
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Test")
+        .setNodeid(nodeid)
+        .setInterface( addr( ipaddr ) )
+        .addParam("mplsLspName", lspname )
+        .getEvent();
+
+        event.setDbid(dbId);
+        return event;
     }
-    
-    private Event createMplsLspPathUpEvent( int nodeid, String ipaddr, String lspname ) {
-        
-        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp", "Drools")
-                .setNodeid(nodeid)
-                .setInterface( addr( ipaddr ) )
-                .addParam("mplsLspName", lspname )
-                .getEvent();
+
+    private Event createMplsLspPathUpEvent( int dbId, int nodeid, String ipaddr, String lspname ) {
+
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp", "Drools")
+        .setNodeid(nodeid)
+        .setInterface( addr( ipaddr ) )
+        .addParam("mplsLspName", lspname )
+        .getEvent();
+        event.setDbid(dbId);
+        return event;
     }
 
 
-    private Event createVpnPwDownEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
-		
-		return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Test")
-				.setNodeid(nodeid)
-				.setInterface( addr( ipaddr ) )
-				.addParam("jnxVpnPwType", pwtype )
-				.addParam("jnxVpnPwName", pwname )
-				.getEvent();
-	}
+    private Event createVpnPwDownEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
 
-    private Event createVpnPwUpEvent( int nodeid, String ipaddr, String pwtype, String pwname ) {
-        
-        return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Test")
-                .setNodeid(nodeid)
-                .setInterface( addr( ipaddr ) )
-                .addParam("jnxVpnPwType", pwtype )
-                .addParam("jnxVpnPwName", pwname )
-                .getEvent();
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Test")
+                              .setNodeid(nodeid)
+                              .setInterface( addr( ipaddr ) )
+                              .addParam("jnxVpnPwType", pwtype )
+                              .addParam("jnxVpnPwName", pwname )
+                              .getEvent();
+        event.setDbid(dbId);
+        return event;
     }
+
+    private Event createVpnPwUpEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
+
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Test")
+                            .setNodeid(nodeid)
+                            .setInterface( addr( ipaddr ) )
+                            .addParam("jnxVpnPwType", pwtype )
+                            .addParam("jnxVpnPwName", pwname )
+                            .getEvent();
+        event.setDbid(dbId);
+        return event;
+    }
+
 
     // Currently unused
-//    private Event createRootCauseEvent(int symptom, int cause) {
-//        return new EventBuilder(createNodeEvent("rootCauseEvent", cause)).getEvent();
-//    }
-	
-	private Event createComponentImpactedEvent( String type, String name, String foreignSource, String foreignId, int cause ) {
-        
+    //    private Event createRootCauseEvent(int symptom, int cause) {
+    //        return new EventBuilder(createNodeEvent("rootCauseEvent", cause)).getEvent();
+    //    }
+
+    private Event createComponentImpactedEvent( String type, String name, String foreignSource, String foreignId, int cause ) {
+
         return new EventBuilder("uei.opennms.org/internal/ncs/componentImpacted", "Component Correlator")
-        .addParam("componentType", type )
-        .addParam("componentName", name )
-        .addParam("componentForeignSource", foreignSource )
-        .addParam("componentForeignId", foreignId )
-        .addParam("cause", cause )
-        .getEvent();
+                            .addParam("componentType", type )
+                            .addParam("componentName", name )
+                            .addParam("componentForeignSource", foreignSource )
+                            .addParam("componentForeignId", foreignId )
+                            .addParam("cause", cause )
+                            .getEvent();
     }
-	
-	private Event createComponentResolvedEvent(String type, String name, String foreignSource, String foreignId, int cause) {
+
+    private Event createComponentResolvedEvent(String type, String name, String foreignSource, String foreignId, int cause) {
         return new EventBuilder("uei.opennms.org/internal/ncs/componentResolved", "Component Correlator")
-        .addParam("componentType", type )
-        .addParam("componentName", name)
-        .addParam("componentForeignSource", foreignSource )
-        .addParam("componentForeignId", foreignId )
-        .addParam("cause", cause )
-        .getEvent();
+                        .addParam("componentType", type )
+                        .addParam("componentName", name)
+                        .addParam("componentForeignSource", foreignSource )
+                        .addParam("componentForeignId", foreignId )
+                        .addParam("cause", cause )
+                        .getEvent();
     }
 
 
     public Event createNodeDownEvent(int nodeid) {
         return createNodeEvent(EventConstants.NODE_DOWN_EVENT_UEI, nodeid);
     }
-    
+
     public Event createNodeUpEvent(int nodeid) {
         return createNodeEvent(EventConstants.NODE_UP_EVENT_UEI, nodeid);
     }
-    
+
     public Event createNodeLostServiceEvent(int nodeid, String ipAddr, String svcName)
     {
-    	return createSvcEvent("uei.opennms.org/nodes/nodeLostService", nodeid, ipAddr, svcName);
+        return createSvcEvent("uei.opennms.org/nodes/nodeLostService", nodeid, ipAddr, svcName);
     }
-    
+
     public Event createNodeRegainedServiceEvent(int nodeid, String ipAddr, String svcName)
     {
-    	return createSvcEvent("uei.opennms.org/nodes/nodeRegainedService", nodeid, ipAddr, svcName);
+        return createSvcEvent("uei.opennms.org/nodes/nodeRegainedService", nodeid, ipAddr, svcName);
     }
-    
+
     private Event createSvcEvent(String uei, int nodeid, String ipaddr, String svcName)
     {
-    	return new EventBuilder(uei, "Test")
-    		.setNodeid(nodeid)
-    		.setInterface( addr( ipaddr ) )
-    		.setService( svcName )
-    		.getEvent();
-    		
+        return new EventBuilder(uei, "Test")
+        .setNodeid(nodeid)
+        .setInterface( addr( ipaddr ) )
+        .setService( svcName )
+        .getEvent();
+
     }
 
     private Event createNodeEvent(String uei, int nodeid) {
         return new EventBuilder(uei, "test")
-            .setNodeid(nodeid)
-            .getEvent();
+        .setNodeid(nodeid)
+        .getEvent();
     }
-    
+
 
 
 
