@@ -71,6 +71,19 @@
                 <source><location>${project.build.directory}/files/share</location></source>
               </sources>
             </mapping>
+	    <mapping>
+	      <directory>/opt/opennms/etc</directory>
+	      <configuration>noreplace</configuration>
+	      <sources>
+                <source><location>${project.build.directory}/files/etc</location></source>
+	      </sources>
+	    </mapping>
+	    <mapping>
+	      <directory>/opt/opennms/jetty-webapps</directory>
+	      <sources>
+                <source><location>${project.build.directory}/files/jetty-webapps</location></source>
+	      </sources>
+	    </mapping>
           </mappings>
         </configuration>
       </plugin>
