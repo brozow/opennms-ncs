@@ -73,8 +73,9 @@ end
 
 rule "propagate impact"
 	when
-		ComponentImpacted( $b : target, $cde : cause )
-		DependsOn( $parent : a, b == $b )
+		ComponentImpacted( $child : target, $cde : cause )
+		DependsOn( $parent : a, b == $child )
+		not ComponentImpacted( target == $parent )
 	
 	then
 		println( "Parent component '" + $parent.getName() + "' is down!" );

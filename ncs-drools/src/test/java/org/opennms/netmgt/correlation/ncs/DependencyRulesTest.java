@@ -31,7 +31,6 @@ package org.opennms.netmgt.correlation.ncs;
 import static org.junit.Assert.assertEquals;
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
-import org.drools.command.assertion.AssertEquals;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -321,14 +320,13 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 
     @Test
     @DirtiesContext
-    @Ignore("Test is failing")
     public void testTwoOutagesCase() throws Exception {
         // Test what happens to the parent when there are two children impacted one is resolved
 
         // Get engine
         DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
 
-        // Antecipate 1st down event
+        // Anticipate 1st down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 17 ) );
@@ -341,11 +339,13 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         // Check down event
         getAnticipator().verifyAnticipated();
 
-        // Antecipate 2nd down event
+        // Anticipate 2nd down event
         getAnticipator().reset();
         anticipate(  createComponentImpactedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 18 ) );
         anticipate(  createComponentImpactedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 18 ) );
-        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18 ) );
+        
+        // Should we get this?
+        //anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18 ) );
 
         // Generate another down event for the other PE
         System.err.println("SENDING 2nd VpnPwDown EVENT!!");
@@ -358,7 +358,9 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)", 17 ) );
         anticipate(  createComponentResolvedEvent( "ServiceElement", "PE1:SE1", "NA-ServiceElement", "8765", 17 ) );
-        //anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
+        anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 17 ) );
+        anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18 ) );
+        
 
         // Generate up event
         System.err.println("SENDING VpnPwUp EVENT!!");
@@ -367,6 +369,22 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         // Check up event
         getAnticipator().verifyAnticipated();
 
+        // Anticipate 2nd up event
+        getAnticipator().reset();
+        anticipate(  createComponentResolvedEvent( "ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 18 ) );
+        anticipate(  createComponentResolvedEvent( "ServiceElement", "PE2:SE1", "NA-ServiceElement", "9876", 18 ) );
+
+        anticipate(  createComponentResolvedEvent( "Service", "CokeP2P", "NA-Service", "123", 18 ) );
+        
+
+        // Generate up event
+        System.err.println("SENDING VpnPwUp EVENT!!");
+        engine.correlate( createVpnPwUpEvent( 20, m_pe2NodeId, "10.1.1.2", "5", "ge-3/1/4.50" ) );
+
+        // Check up event
+        getAnticipator().verifyAnticipated();
+
+        
         // Memory should be clean!
         assertEquals( 0, engine.getMemorySize() );
 
