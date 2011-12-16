@@ -5,29 +5,37 @@
 	xsi:schemaLocation="http://xmlns.opennms.org/xsd/drools-engine http://xmlns.opennms.org/xsd/drools-engine.xsd ">
   <rule-set name="monolithicDependencyRules">
     <rule-file>file:src/test/opennms-home/etc/DependencyRules.drl</rule-file>
-    <event>uei.opennms.org/nodes/nodeLostService</event>
-    <event>uei.opennms.org/nodes/nodeRegainedService</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwDown</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwUp</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathDown</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathUp</event>
     <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
   <rule-set name="eventMappingRules">
     <rule-file>file:src/main/opennms-home/etc/drools/eventMappingRules.drl</rule-file>
-    <event>uei.opennms.org/nodes/nodeLostService</event>
-    <event>uei.opennms.org/nodes/nodeRegainedService</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwDown</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwUp</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathDown</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathUp</event>
     <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
   <rule-set name="dependencyLoadingRules">
     <rule-file>file:src/main/opennms-home/etc/drools/dependencyLoadingRules.drl</rule-file>
-    <event>uei.opennms.org/nodes/nodeLostService</event>
-    <event>uei.opennms.org/nodes/nodeRegainedService</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwDown</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwUp</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathDown</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathUp</event>
     <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
   <rule-set name="impactPropagationRules">
     <rule-file>file:src/main/opennms-home/etc/drools/impactPropagationRules.drl</rule-file>
-    <event>uei.opennms.org/nodes/nodeLostService</event>
-    <event>uei.opennms.org/nodes/nodeRegainedService</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwDown</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwUp</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathDown</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathUp</event>
     <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
@@ -35,8 +43,10 @@
     <rule-file>file:src/main/opennms-home/etc/drools/eventMappingRules.drl</rule-file>
     <rule-file>file:src/main/opennms-home/etc/drools/dependencyLoadingRules.drl</rule-file>
     <rule-file>file:src/main/opennms-home/etc/drools/impactPropagationRules.drl</rule-file>
-    <event>uei.opennms.org/nodes/nodeLostService</event>
-    <event>uei.opennms.org/nodes/nodeRegainedService</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwDown</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwUp</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathDown</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathUp</event>
     <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>

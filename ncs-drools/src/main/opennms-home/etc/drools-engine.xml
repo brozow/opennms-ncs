@@ -7,8 +7,10 @@
     <rule-file>file:etc/drools/eventMappingRules.drl</rule-file>
     <rule-file>file:etc/drools/dependencyLoadingRules.drl</rule-file>
     <rule-file>file:etc/drools/impactPropagationRules.drl</rule-file>
-    <event>uei.opennms.org/nodes/nodeLostService</event>
-    <event>uei.opennms.org/nodes/nodeRegainedService</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwDown</event>
+    <event>uei.opennms.org/vendor/Juniper/jnxVpnPwUp</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathDown</event>
+    <event>uei.opennms.org/vendor/Juniper/mplsLspPathUp</event>
     <app-context>file:etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
