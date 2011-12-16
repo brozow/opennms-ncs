@@ -13,6 +13,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.opennms.netmgt.model.ncs.NCSComponent;
+import org.opennms.netmgt.ncs.rest.test.AbstractSpringJerseyRestTestCase;
 
 public class NCSRestTest extends AbstractSpringJerseyRestTestCase {
 	

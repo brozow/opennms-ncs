@@ -10,6 +10,7 @@
     <module>ncs-test</module>
     <module>ncs-model</module>
     <module>ncs-persistence</module>
+    <module>rest-stats</module>
     <module>ncs-drools</module>
     <module>ncs-northbounder</module>
     <module>ncs-assembly</module>

@@ -26,7 +26,7 @@
  *     http://www.opennms.com/
  *******************************************************************************/
 
-package org.opennms.netmgt.ncs.rest;
+package org.opennms.netmgt.ncs.rest.test;
 
 import static org.junit.Assert.assertEquals;
 
@@ -78,10 +78,10 @@ public abstract class AbstractSpringJerseyRestTestCase {
 	
 	private static Logger s_log = LoggerFactory.getLogger(AbstractSpringJerseyRestTestCase.class);
 
-    static String GET = "GET";
-    static String POST = "POST";
-    static String DELETE = "DELETE";
-    static String PUT = "PUT";
+	public static String GET = "GET";
+	public static String POST = "POST";
+	public static String DELETE = "DELETE";
+	public static String PUT = "PUT";
     
     String contextPath = "/opennms/rest";
     
