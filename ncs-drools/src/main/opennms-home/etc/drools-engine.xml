@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<engine-configuration 
+	xmlns="http://xmlns.opennms.org/xsd/drools-engine" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://xmlns.opennms.org/xsd/drools-engine http://xmlns.opennms.org/xsd/drools-engine.xsd ">
+  <rule-set name="dependencyRules">
+    <rule-file>file:etc/drools/eventMappingRules.drl</rule-file>
+    <rule-file>file:etc/drools/dependencyLoadingRules.drl</rule-file>
+    <rule-file>file:etc/drools/impactPropagationRules.drl</rule-file>
+    <event>uei.opennms.org/nodes/nodeLostService</event>
+    <event>uei.opennms.org/nodes/nodeRegainedService</event>
+    <app-context>file:etc/drools/dependencyRules-context.xml</app-context>
+    <global name="correlationService" ref="ncsCorrelationService"/>
+  </rule-set>
+</engine-configuration>

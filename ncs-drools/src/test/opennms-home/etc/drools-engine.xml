@@ -7,37 +7,37 @@
     <rule-file>file:src/test/opennms-home/etc/DependencyRules.drl</rule-file>
     <event>uei.opennms.org/nodes/nodeLostService</event>
     <event>uei.opennms.org/nodes/nodeRegainedService</event>
-    <app-context>file:src/test/opennms-home/etc/dependencyRules-context.xml</app-context>
+    <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
   <rule-set name="eventMappingRules">
-    <rule-file>file:src/test/opennms-home/etc/eventMappingRules.drl</rule-file>
+    <rule-file>file:src/main/opennms-home/etc/drools/eventMappingRules.drl</rule-file>
     <event>uei.opennms.org/nodes/nodeLostService</event>
     <event>uei.opennms.org/nodes/nodeRegainedService</event>
-    <app-context>file:src/test/opennms-home/etc/dependencyRules-context.xml</app-context>
+    <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
   <rule-set name="dependencyLoadingRules">
-    <rule-file>file:src/test/opennms-home/etc/dependencyLoadingRules.drl</rule-file>
+    <rule-file>file:src/main/opennms-home/etc/drools/dependencyLoadingRules.drl</rule-file>
     <event>uei.opennms.org/nodes/nodeLostService</event>
     <event>uei.opennms.org/nodes/nodeRegainedService</event>
-    <app-context>file:src/test/opennms-home/etc/dependencyRules-context.xml</app-context>
+    <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
   <rule-set name="impactPropagationRules">
-    <rule-file>file:src/test/opennms-home/etc/impactPropagationRules.drl</rule-file>
+    <rule-file>file:src/main/opennms-home/etc/drools/impactPropagationRules.drl</rule-file>
     <event>uei.opennms.org/nodes/nodeLostService</event>
     <event>uei.opennms.org/nodes/nodeRegainedService</event>
-    <app-context>file:src/test/opennms-home/etc/dependencyRules-context.xml</app-context>
+    <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
   <rule-set name="dependencyRules">
-    <rule-file>file:src/test/opennms-home/etc/eventMappingRules.drl</rule-file>
-    <rule-file>file:src/test/opennms-home/etc/dependencyLoadingRules.drl</rule-file>
-    <rule-file>file:src/test/opennms-home/etc/impactPropagationRules.drl</rule-file>
+    <rule-file>file:src/main/opennms-home/etc/drools/eventMappingRules.drl</rule-file>
+    <rule-file>file:src/main/opennms-home/etc/drools/dependencyLoadingRules.drl</rule-file>
+    <rule-file>file:src/main/opennms-home/etc/drools/impactPropagationRules.drl</rule-file>
     <event>uei.opennms.org/nodes/nodeLostService</event>
     <event>uei.opennms.org/nodes/nodeRegainedService</event>
-    <app-context>file:src/test/opennms-home/etc/dependencyRules-context.xml</app-context>
+    <app-context>file:src/main/opennms-home/etc/drools/dependencyRules-context.xml</app-context>
     <global name="correlationService" ref="ncsCorrelationService"/>
   </rule-set>
 </engine-configuration>
