@@ -32,9 +32,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
+import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 
 import org.drools.FactHandle;
 import org.junit.Before;
@@ -75,7 +81,7 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 	private List<Object> m_anticipatedWorkingMemory = new ArrayList<Object>();
 	
 	@Before
-	public void setUp() {
+	public void setUp() throws JAXBException, UnsupportedEncodingException {
 		
 		OnmsDistPoller distPoller = new OnmsDistPoller("localhost", "127.0.0.1");
 		
@@ -191,6 +197,25 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
 		
 		// Get engine
         m_engine = findEngineByName("impactPropagationRules");
+        
+//        // Create a Marshaller
+//        JAXBContext context = JAXBContext.newInstance(NCSComponent.class);
+//        Marshaller marshaller = context.createMarshaller();
+//        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+//        
+//        // save the output in a byte array
+//        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//
+//        // marshall the output
+//        marshaller.marshal(svc, out);
+//
+//        // verify its matches the expected results
+//        byte[] utf8 = out.toByteArray();
+//
+//        String result = new String(utf8, "UTF-8");
+//        
+//        System.err.println(result);
+
 
 
 	}
