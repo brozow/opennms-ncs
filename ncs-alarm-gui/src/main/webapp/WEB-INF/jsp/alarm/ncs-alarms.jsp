@@ -298,12 +298,21 @@
 
 
 
-            <th width="8%">
+            <th width="7%">
               <%=this.makeSortLink( parms, SortStyle.ID,        SortStyle.REVERSE_ID,        "id",        "ID" )%>
               <br />
               <%=this.makeSortLink( parms, SortStyle.SEVERITY,  SortStyle.REVERSE_SEVERITY,  "severity",  "Severity"  )%>
             </th>
-            <th width="19%">
+            <th width="5%">
+                Component Type
+            </th>
+            <th width="17%">
+              Component Name
+            </th>
+            <th width="3%">
+              Related
+            </th>
+            <th width="5%">
               <%=this.makeSortLink( parms, SortStyle.NODE,      SortStyle.REVERSE_NODE,      "node",      "Node"      )%>
               <c:if test="${param.display == 'long'}">
               <br />
@@ -311,15 +320,6 @@
               <br />
               <%=this.makeSortLink( parms, SortStyle.SERVICE,   SortStyle.REVERSE_SERVICE,   "service",   "Service"   )%>
               </c:if>
-            </th>
-            <th width="5%">
-                Component Type
-            </th>
-            <th width="19%">
-              Component Name
-            </th>
-            <th width="3%">
-              Related
             </th>
             <th width="15%">
               <%=this.makeSortLink( parms, SortStyle.LASTEVENTTIME,  SortStyle.REVERSE_LASTEVENTTIME,  "lasteventtime",  "Last Event Time"  )%>
@@ -381,6 +381,37 @@
             <% } %>
           </c:if>
           </td>
+          
+          <td class="divider" valign="middle" rowspan="1">
+          <%String componentType = getParm(alarms[i].getParms(), "componentType"); %>
+          <%if(componentType != null){ %>
+            <%=componentType%>
+            <nobr>
+                <a href="<%=this.makeLink( parms, new EventParmLikeFilter("componentType=" + componentType), true)%>" class="filterLink" title="Show only alarms with componentType">${addPositiveFilter}</a>
+                  <a href="<%=this.makeLink( parms, new NegativeEventParmLikeFilter("componentType=" + componentType), true)%>" class="filterLink" title="Do not show alarms with componentType">${addNegativeFilter}</a>
+            </nobr>
+          <%}%>
+          </td>
+          <!-- Start Cause Column -->
+          <td class="divider">
+          <%String componentName = getParm(alarms[i].getParms(), "componentName"); %>
+          <%if(componentName != null){ %>
+            <a href="ncs/ncs-type.htm?type=<%=componentName%>&foreignSource=<%=getParm(alarms[i].getParms(), "foreignSource")%>&foreignId=<%=getParm(alarms[i].getParms(), "foreignId")%>"><%=componentName %></a>
+            <nobr>
+                  <a href="<%=this.makeLink( parms, new EventParmLikeFilter("componentName=" + componentName), true)%>" class="filterLink" title="Show only alarms with componentName">${addPositiveFilter}</a>
+                  <a href="<%=this.makeLink( parms, new NegativeEventParmLikeFilter("componentName=" + componentName), true)%>" class="filterLink" title="Do not show alarms with componentName">${addNegativeFilter}</a>
+            </nobr>
+          <%} %>
+          </td>
+          <!-- Cause Column Start -->          
+          <td class="divider" valign="middle" rowspan="1" >
+          <%String related = getParm(alarms[i].getParms(), "cause"); %>
+          <%if(related != null){%>
+            <nobr>
+                <a href="alarm/ncs-alarms.htm?sortby=id&amp;acktype=unack&amp;filter=parmmatchany%3dcause%3d<%=related%>"><%=related%></a>
+            </nobr>
+          <%} %>
+          </td>
           <td class="divider">
         <% if(alarms[i].getNodeId() != 0 && alarms[i].getNodeLabel()!= null ) { %>
               <% Filter nodeFilter = new NodeFilter(alarms[i].getNodeId(), getServletContext()); %>             
@@ -440,37 +471,6 @@
             <% } %>
             </c:if>
           </td>
-          <td class="divider" valign="middle" rowspan="1">
-          <%String componentType = getParm(alarms[i].getParms(), "componentType"); %>
-          <%if(componentType != null){ %>
-            <%=componentType%>
-            <nobr>
-                <a href="<%=this.makeLink( parms, new EventParmLikeFilter("componentType=" + componentType), true)%>" class="filterLink" title="Show only alarms with componentType">${addPositiveFilter}</a>
-                  <a href="<%=this.makeLink( parms, new NegativeEventParmLikeFilter("componentType=" + componentType), true)%>" class="filterLink" title="Do not show alarms with componentType">${addNegativeFilter}</a>
-            </nobr>
-          <%}%>
-          </td>
-          <!-- Start Cause Column -->
-          <td class="divider">
-          <%String componentName = getParm(alarms[i].getParms(), "componentName"); %>
-          <%if(componentName != null){ %>
-            <a href="ncs/ncs-type.htm?type=<%=componentName%>&foreignSource=<%=getParm(alarms[i].getParms(), "foreignSource")%>&foreignId=<%=getParm(alarms[i].getParms(), "foreignId")%>"><%=componentName %></a>
-            <nobr>
-                  <a href="<%=this.makeLink( parms, new EventParmLikeFilter("componentName=" + componentName), true)%>" class="filterLink" title="Show only alarms with componentName">${addPositiveFilter}</a>
-                  <a href="<%=this.makeLink( parms, new NegativeEventParmLikeFilter("componentName=" + componentName), true)%>" class="filterLink" title="Do not show alarms with componentName">${addNegativeFilter}</a>
-            </nobr>
-          <%} %>
-          </td>
-          <!-- Cause Column Start -->          
-          <td class="divider" valign="middle" rowspan="1" >
-          <%String related = getParm(alarms[i].getParms(), "cause"); %>
-          <%if(related != null){%>
-            <nobr>
-                <a href="alarm/ncs-alarms.htm?sortby=id&amp;acktype=unack&amp;filter=parmmatchany%3dcause%3d<%=related%>"><%=related%></a>
-            </nobr>
-          <%} %>
-          </td>
-          
           <td class="divider">
             <nobr><span title="Event <%= alarms[i].getLastEventID() %>"><a href="event/detail.jsp?id=<%= alarms[i].getLastEventID() %>"><fmt:formatDate value="${alarm.lastEventTime}" type="date" dateStyle="short"/>&nbsp;<fmt:formatDate value="${alarm.lastEventTime}" type="time" pattern="HH:mm:ss"/></a></span></nobr>
             <nobr>
