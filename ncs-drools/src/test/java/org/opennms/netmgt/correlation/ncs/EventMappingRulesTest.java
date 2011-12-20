@@ -331,7 +331,7 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
         Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathDown", "Test")
                 .setNodeid(nodeid)
                 .setInterface( addr( ipaddr ) )
-                .addParam("mplsLspName", lspname )
+                .addParam("1.2.3.1", lspname )
                 .getEvent();
         
         event.setDbid(dbId);
@@ -343,7 +343,7 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
         Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/mplsLspPathUp", "Drools")
                 .setNodeid(nodeid)
                 .setInterface( addr( ipaddr ) )
-                .addParam("mplsLspName", lspname )
+                .addParam("1.2.3.1", lspname )
                 .getEvent();
         event.setDbid(dbId);
 		return event;
@@ -355,8 +355,8 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Test")
 				.setNodeid(nodeid)
 				.setInterface( addr( ipaddr ) )
-				.addParam("jnxVpnPwType", pwtype )
-				.addParam("jnxVpnPwName", pwname )
+				.addParam("1.2.3.1", pwtype )
+				.addParam("1.2.3.2", pwname )
 				.getEvent();
 		event.setDbid(dbId);
 		return event;
@@ -367,8 +367,8 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
         Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Test")
                 .setNodeid(nodeid)
                 .setInterface( addr( ipaddr ) )
-                .addParam("jnxVpnPwType", pwtype )
-                .addParam("jnxVpnPwName", pwname )
+                .addParam("1.2.3.1", pwtype )
+                .addParam("1.2.3.2", pwname )
                 .getEvent();
         event.setDbid(dbId);
 		return event;

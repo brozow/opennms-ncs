@@ -20,6 +20,8 @@ import org.opennms.netmgt.model.events.EventBuilder;
 import org.opennms.netmgt.EventConstants;
 import org.opennms.netmgt.capsd.EventUtils;
 import org.drools.spi.KnowledgeHelper;
+import org.opennms.netmgt.correlation.ncs.NCSCorrelationService;
+import org.opennms.netmgt.correlation.ncs.NCSCorrelationService.AttrParmMap;
 
 global org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine engine;
 global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationService;
@@ -31,7 +33,7 @@ rule "pseudo-wire component down"
 when
 	$e : Event( uei matches ".*jnxVpnPwDown" )
 then
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwType", "jnxVpnPwName");
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwType", 1), map("jnxVpnPwName", 2));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		retract( $e );
@@ -42,9 +44,9 @@ end
 rule "pseudo-wire component up"
 	salience 100
 when
-	$e : Event( uei matches ".*jnxVpnPwUp" )
+	$e : Event( $uei: uei matches ".*jnxVpnPwUp" )
 then
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwType", "jnxVpnPwName");
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwType", 1), map("jnxVpnPwName", 2));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		retract( $e );
@@ -57,7 +59,7 @@ rule "mpls lsp path component down"
 when
 	$e : Event( uei matches ".*mplsLspPathDown" )
 then
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "mplsLspName");
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("mplsLspName", 1));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		retract( $e );
@@ -70,7 +72,7 @@ rule "mpls lsp path component up"
 when
 	$e : Event( uei matches ".*mplsLspPathUp" )
 then
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "mplsLspName");
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("mplsLspName", 1));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		retract( $e );
@@ -82,6 +84,11 @@ end
 function void println(Object msg)
 {
 	System.err.println(new Date() + " : " + msg);
+}
+
+function AttrParmMap map( String attrName, int parmIndex )
+{
+	return new AttrParmMap(attrName, parmIndex);	
 }
 
 function void sendImpactedComponentEvent( DroolsCorrelationEngine engine, Component c, Event e )

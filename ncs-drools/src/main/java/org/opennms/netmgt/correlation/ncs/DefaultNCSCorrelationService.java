@@ -37,8 +37,8 @@ public class DefaultNCSCorrelationService implements NCSCorrelationService {
 		return parents;
 
 	}
-
-	@Override
+	
+    @Override
 	public List<NCSComponent> findComponentsByNodeIdAndEventParameters(Event e, String... parameterNames) {
 		
 		assert e.getNodeid() != null;
@@ -91,6 +91,35 @@ public class DefaultNCSCorrelationService implements NCSCorrelationService {
             
             return new ArrayList<NCSComponent>(subcomponents);
 
+    }
+
+    @Override
+    public List<NCSComponent> findComponentsByNodeIdAndAttrParmMaps(Event e, AttrParmMap... parameterMap) {
+        assert e.getNodeid() != null;
+        assert e.getNodeid() != 0;
+        
+        
+        List<NCSComponent> components = m_componentRepo.findComponentsByNodeId(e.getNodeid().intValue());
+
+        List<NCSComponent> matching = new LinkedList<NCSComponent>();
+        for(NCSComponent component : components)
+        {
+            if (matches(component, e, parameterMap)) {
+                matching.add(component);
+            }
+        }
+
+        return matching;
+    }
+
+    private boolean matches(NCSComponent component, Event e, AttrParmMap[] parameterMap) {
+        for(AttrParmMap map : parameterMap) {
+            if (!map.matches(component, e)) {
+                return false;
+            }
+        }
+        
+        return true;
     }
 
 
