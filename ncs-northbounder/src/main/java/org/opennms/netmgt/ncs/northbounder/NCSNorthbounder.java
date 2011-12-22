@@ -272,7 +272,9 @@ public class NCSNorthbounder extends AbstractNorthbounder {
 			// verify its matches the expected results
 			byte[] utf8 = out.toByteArray();
 
-			return new ByteArrayEntity(utf8);
+			ByteArrayEntity entity = new ByteArrayEntity(utf8);
+			entity.setContentType("application/xml");
+            return entity;
 
 		} catch (JAXBException e) {
 			throw new NorthbounderException("failed to convert alarms to xml", e);
