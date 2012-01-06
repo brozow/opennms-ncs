@@ -33,10 +33,10 @@ rule "pseudo-wire component down"
 when
 	$e : Event( uei matches ".*jnxVpnPwDown" )
 then
+	retract( $e );
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwType", 1), map("jnxVpnPwName", 2));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
-		retract( $e );
 		insert( new ComponentDownEvent( c, $e ) );
 	}
 end
@@ -46,10 +46,10 @@ rule "pseudo-wire component up"
 when
 	$e : Event( $uei: uei matches ".*jnxVpnPwUp" )
 then
+	retract( $e );
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwType", 1), map("jnxVpnPwName", 2));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
-		retract( $e );
 		insert( new ComponentUpEvent( c, $e ) );
 	}
 end
@@ -59,10 +59,10 @@ rule "mpls lsp path component down"
 when
 	$e : Event( uei matches ".*mplsLspPathDown" )
 then
+	retract( $e );
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("mplsLspName", 1));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
-		retract( $e );
 		insert( new ComponentDownEvent( c, $e ) );
 	}
 end
@@ -72,10 +72,10 @@ rule "mpls lsp path component up"
 when
 	$e : Event( uei matches ".*mplsLspPathUp" )
 then
+	retract( $e );
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("mplsLspName", 1));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
-		retract( $e );
 		insert( new ComponentUpEvent( c, $e ) );
 	}
 end
