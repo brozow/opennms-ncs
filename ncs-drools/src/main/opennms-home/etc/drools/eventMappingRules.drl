@@ -34,7 +34,7 @@ when
 	$e : Event( uei matches ".*jnxVpnPwDown" )
 then
 	retract( $e );
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwType", 1), map("jnxVpnPwName", 2));
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwVpnType", 1), map("jnxVpnPwVpnName", 2));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		insert( new ComponentDownEvent( c, $e ) );
@@ -47,12 +47,40 @@ when
 	$e : Event( $uei: uei matches ".*jnxVpnPwUp" )
 then
 	retract( $e );
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwType", 1), map("jnxVpnPwName", 2));
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnPwVpnType", 1), map("jnxVpnPwVpnName", 2));
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		insert( new ComponentUpEvent( c, $e ) );
 	}
 end
+
+rule "Vpn interface (UNI) component down"
+	salience 100
+when
+	$e : Event( uei matches ".*jnxVpnIfDown" )
+then
+	retract( $e );
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnIfVpnType", 1), map("jnxVpnIfVpnName", 2));
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
+		insert( new ComponentDownEvent( c, $e ) );
+	}
+end
+
+rule "Vpn interface (UNI) component up"
+	salience 100
+when
+	$e : Event( $uei: uei matches ".*jnxVpnIfUp" )
+then
+	retract( $e );
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnIfVpnType", 1), map("jnxVpnIfVpnName", 2));
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
+		insert( new ComponentUpEvent( c, $e ) );
+	}
+end
+
+ 
 
 rule "mpls lsp path component down"
 	salience 100

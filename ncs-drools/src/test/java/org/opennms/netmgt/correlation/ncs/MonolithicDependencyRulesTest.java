@@ -109,8 +109,8 @@ public class MonolithicDependencyRulesTest extends CorrelationRulesTestCase {
 				.setNodeIdentity("space", "1111-PE1")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
-				.setAttribute("jnxVpnPwType", "5")
-				.setAttribute("jnxVpnPwName", "ge-1/0/2.50")
+				.setAttribute("jnxVpnPwVpnType", "5")
+				.setAttribute("jnxVpnPwVpnName", "ge-1/0/2.50")
 				.setDependenciesRequired(DependencyRequirements.ANY)
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2")
 					.setName("lspA-PE1-PE2")
@@ -151,8 +151,8 @@ public class MonolithicDependencyRulesTest extends CorrelationRulesTestCase {
 				.setNodeIdentity("space", "2222-PE2")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
-				.setAttribute("jnxVpnPwType", "5")
-				.setAttribute("jnxVpnPwName", "ge-3/1/4.50")
+				.setAttribute("jnxVpnPwVpnType", "5")
+				.setAttribute("jnxVpnPwVpnName", "ge-3/1/4.50")
 				.setDependenciesRequired(DependencyRequirements.ANY)
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1")
 					.setName("lspA-PE2-PE1")
@@ -369,8 +369,8 @@ public class MonolithicDependencyRulesTest extends CorrelationRulesTestCase {
 		return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown", "Test")
 				.setNodeid(nodeid)
 				.setInterface( addr( ipaddr ) )
-				.addParam("jnxVpnPwType", pwtype )
-				.addParam("jnxVpnPwName", pwname )
+				.addParam("jnxVpnPwVpnType", pwtype )
+				.addParam("jnxVpnPwVpnName", pwname )
 				.getEvent();
 	}
 
@@ -379,8 +379,8 @@ public class MonolithicDependencyRulesTest extends CorrelationRulesTestCase {
         return new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp", "Test")
                 .setNodeid(nodeid)
                 .setInterface( addr( ipaddr ) )
-                .addParam("jnxVpnPwType", pwtype )
-                .addParam("jnxVpnPwName", pwname )
+                .addParam("jnxVpnPwVpnType", pwtype )
+                .addParam("jnxVpnPwVpnName", pwname )
                 .getEvent();
     }
 

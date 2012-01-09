@@ -61,7 +61,7 @@ when
 	$e : Event( uei matches ".*jnxVpnPwDown" )
 	
 then
-	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwType", "jnxVpnPwName");
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndEventParameters($e, "jnxVpnPwVpnType", "jnxVpnPwVpnName");
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		insert( new EventComponent( c, $e ) );
@@ -86,11 +86,11 @@ rule "pseudo-wire component up"
 	salience 100
 when
 	$downEvent : Event( uei matches ".*jnxVpnPwDown", $downNodeId : nodeid, $downParms : parmCollection )
-	Parm( parmName == "jnxVpnPwType", $downVpnPwTypeValue: value.content ) from $downParms
-	Parm( parmName == "jnxVpnPwName", $downVpnPwNameValue: value.content ) from $downParms
+	Parm( parmName == "jnxVpnPwVpnType", $downVpnPwTypeValue: value.content ) from $downParms
+	Parm( parmName == "jnxVpnPwVpnName", $downVpnPwNameValue: value.content ) from $downParms
 	$upEvent : Event( uei matches ".*jnxVpnPwUp", nodeid == $downNodeId, $upParms : parmCollection )
-	Parm( parmName == "jnxVpnPwType", value.content == $downVpnPwTypeValue ) from $upParms
-	Parm( parmName == "jnxVpnPwName", value.content == $downVpnPwNameValue ) from $upParms
+	Parm( parmName == "jnxVpnPwVpnType", value.content == $downVpnPwTypeValue ) from $upParms
+	Parm( parmName == "jnxVpnPwVpnName", value.content == $downVpnPwNameValue ) from $upParms
 	$eventComponent: EventComponent ( $c : component, event == $downEvent )
 	$impacted : Impacted( target == $c, cause == $downEvent )
 then
