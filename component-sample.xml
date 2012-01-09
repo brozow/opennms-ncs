@@ -14,11 +14,11 @@
             <downEventUei>uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown</downEventUei>
             <attributes>
                 <attribute>
-                    <key>jnxVpnIfType</key>
+                    <key>jnxVpnIfVpnType</key>
                     <value>5</value>
                 </attribute>
                 <attribute>
-                    <key>jnxVpnIfName</key>
+                    <key>jnxVpnIfVpnName</key>
                     <value>ge-1/0/2.50</value>
                 </attribute>
             </attributes>
@@ -45,11 +45,11 @@
             <dependenciesRequired>ANY</dependenciesRequired>
             <attributes>
                 <attribute>
-                    <key>jnxVpnPwType</key>
+                    <key>jnxVpnPwVpnType</key>
                     <value>5</value>
                 </attribute>
                 <attribute>
-                    <key>jnxVpnPwName</key>
+                    <key>jnxVpnPwVpnName</key>
                     <value>ge-1/0/2.50</value>
                 </attribute>
             </attributes>
@@ -93,11 +93,11 @@
             <downEventUei>uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown</downEventUei>
             <attributes>
                 <attribute>
-                    <key>jnxVpnIfType</key>
+                    <key>jnxVpnIfVpnType</key>
                     <value>5</value>
                 </attribute>
                 <attribute>
-                    <key>jnxVpnIfName</key>
+                    <key>jnxVpnIfVpnName</key>
                     <value>ge-3/1/4.50</value>
                 </attribute>
             </attributes>
@@ -124,11 +124,11 @@
             <dependenciesRequired>ANY</dependenciesRequired>
             <attributes>
                 <attribute>
-                    <key>jnxVpnPwType</key>
+                    <key>jnxVpnPwVpnType</key>
                     <value>5</value>
                 </attribute>
                 <attribute>
-                    <key>jnxVpnPwName</key>
+                    <key>jnxVpnPwVpnName</key>
                     <value>ge-3/1/4.50</value>
                 </attribute>
             </attributes>

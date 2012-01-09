@@ -98,8 +98,8 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 				.setNodeIdentity("space", "1111-PE1")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
-				.setAttribute("jnxVpnIfType", "5")
-				.setAttribute("jnxVpnIfName", "ge-1/0/2.50")
+				.setAttribute("jnxVpnIfVpnType", "5")
+				.setAttribute("jnxVpnIfVpnName", "ge-1/0/2.50")
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:link")
 					.setName("link")
 					.setNodeIdentity("space", "1111-PE1")
@@ -140,8 +140,8 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 				.setNodeIdentity("space", "2222-PE2")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
-				.setAttribute("jnxVpnIfType", "5")
-				.setAttribute("jnxVpnIfName", "ge-3/1/4.50")
+				.setAttribute("jnxVpnIfVpnType", "5")
+				.setAttribute("jnxVpnIfVpnName", "ge-3/1/4.50")
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:link")
 					.setName("link")
 					.setNodeIdentity("space", "2222-PE2")
@@ -214,6 +214,26 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 
     }
     
+    @Test
+    @DirtiesContext
+    public void testMapIfDown() throws Exception {
+        
+        Event event = createVpnIfDownEvent(17, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" );
+
+        testEventMapping(event, ComponentDownEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnIf");
+
+    }
+    
+    @Test
+    @DirtiesContext
+    public void testMapIfUp() throws Exception {
+        
+        Event event = createVpnIfUpEvent(17, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" );
+
+        testEventMapping(event, ComponentUpEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "8765:jnxVpnIf");
+
+    }
+    
 	@Test
     @DirtiesContext
     public void testMapMplsLspPathDown() throws Exception {
@@ -247,7 +267,7 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 
 		Object eventObj = memObjects.get(0);
 
-		assertTrue( componentEventClass.isInstance(eventObj) );
+		assertTrue( "expected " + eventObj + " to be an instance of " + componentEventClass, componentEventClass.isInstance(eventObj) );
 		assertTrue( eventObj instanceof ComponentEvent );
 		
 		ComponentEvent c = (ComponentEvent) eventObj;
@@ -374,5 +394,28 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		return event;
     }
 
+    private Event createVpnIfDownEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
+        
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown", "Test")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("1.2.3.1", pwtype )
+                .addParam("1.2.3.2", pwname )
+                .getEvent();
+        event.setDbid(dbId);
+        return event;
+    }
+
+    private Event createVpnIfUpEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
+        
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp", "Test")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("1.2.3.1", pwtype )
+                .addParam("1.2.3.2", pwname )
+                .getEvent();
+        event.setDbid(dbId);
+        return event;
+    }
 
 }

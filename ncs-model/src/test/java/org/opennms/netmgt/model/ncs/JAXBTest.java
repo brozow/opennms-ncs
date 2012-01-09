@@ -42,11 +42,11 @@ public class JAXBTest {
 				"            <downEventUei>uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown</downEventUei>\n" + 
 				"            <attributes>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnIfType</key>\n" + 
+				"                    <key>jnxVpnIfVpnType</key>\n" + 
 				"                    <value>5</value>\n" + 
 				"                </attribute>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnIfName</key>\n" + 
+				"                    <key>jnxVpnIfVpnName</key>\n" + 
 				"                    <value>ge-1/0/2.50</value>\n" + 
 				"                </attribute>\n" + 
 				"            </attributes>\n" + 
@@ -69,11 +69,11 @@ public class JAXBTest {
 				"            <dependenciesRequired>ANY</dependenciesRequired>\n" + 
 				"            <attributes>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnPwType</key>\n" + 
+				"                    <key>jnxVpnPwVpnType</key>\n" + 
 				"                    <value>5</value>\n" + 
 				"                </attribute>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnPwName</key>\n" + 
+				"                    <key>jnxVpnPwVpnName</key>\n" + 
 				"                    <value>ge-1/0/2.50</value>\n" + 
 				"                </attribute>\n" + 
 				"            </attributes>\n" + 
@@ -110,11 +110,11 @@ public class JAXBTest {
 				"            <downEventUei>uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown</downEventUei>\n" + 
 				"            <attributes>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnIfType</key>\n" + 
+				"                    <key>jnxVpnIfVpnType</key>\n" + 
 				"                    <value>5</value>\n" + 
 				"                </attribute>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnIfName</key>\n" + 
+				"                    <key>jnxVpnIfVpnName</key>\n" + 
 				"                    <value>ge-3/1/4.50</value>\n" + 
 				"                </attribute>\n" + 
 				"            </attributes>\n" + 
@@ -137,11 +137,11 @@ public class JAXBTest {
 				"            <dependenciesRequired>ANY</dependenciesRequired>\n" + 
 				"            <attributes>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnPwType</key>\n" + 
+				"                    <key>jnxVpnPwVpnType</key>\n" + 
 				"                    <value>5</value>\n" + 
 				"                </attribute>\n" + 
 				"                <attribute>\n" + 
-				"                    <key>jnxVpnPwName</key>\n" + 
+				"                    <key>jnxVpnPwVpnName</key>\n" + 
 				"                    <value>ge-3/1/4.50</value>\n" + 
 				"                </attribute>\n" + 
 				"            </attributes>\n" + 
@@ -182,8 +182,8 @@ public class JAXBTest {
 				.setName("jnxVpnIf")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
-				.setAttribute("jnxVpnIfType", "5")
-				.setAttribute("jnxVpnIfName", "ge-1/0/2.50")
+				.setAttribute("jnxVpnIfVpnType", "5")
+				.setAttribute("jnxVpnIfVpnName", "ge-1/0/2.50")
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:link")
 					.setName("link")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
@@ -195,8 +195,8 @@ public class JAXBTest {
 				.setName("jnxVpnPw-vcid(50)")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
-				.setAttribute("jnxVpnPwType", "5")
-				.setAttribute("jnxVpnPwName", "ge-1/0/2.50")
+				.setAttribute("jnxVpnPwVpnType", "5")
+				.setAttribute("jnxVpnPwVpnName", "ge-1/0/2.50")
 				.setDependenciesRequired(DependencyRequirements.ANY)
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "8765:lspA-PE1-PE2")
 					.setName("lspA-PE1-PE2")
@@ -219,8 +219,8 @@ public class JAXBTest {
 				.setName("jnxVpnIf")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown")
-				.setAttribute("jnxVpnIfType", "5")
-				.setAttribute("jnxVpnIfName", "ge-3/1/4.50")
+				.setAttribute("jnxVpnIfVpnType", "5")
+				.setAttribute("jnxVpnIfVpnName", "ge-3/1/4.50")
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:link")
 					.setName("link")
 					.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/linkUp")
@@ -232,8 +232,8 @@ public class JAXBTest {
 				.setName("jnxVpnPw-vcid(50)")
 				.setUpEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp")
 				.setDownEventUei("uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown")
-				.setAttribute("jnxVpnPwType", "5")
-				.setAttribute("jnxVpnPwName", "ge-3/1/4.50")
+				.setAttribute("jnxVpnPwVpnType", "5")
+				.setAttribute("jnxVpnPwVpnName", "ge-3/1/4.50")
 				.setDependenciesRequired(DependencyRequirements.ANY)
 				.pushComponent("ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1")
 					.setName("lspA-PE2-PE1")

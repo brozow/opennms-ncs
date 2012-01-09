@@ -59,8 +59,10 @@ rule "Vpn interface (UNI) component down"
 when
 	$e : Event( uei matches ".*jnxVpnIfDown" )
 then
+	println( "Found Event " + $e.getUei() );
 	retract( $e );
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnIfVpnType", 1), map("jnxVpnIfVpnName", 2));
+	println(" Found matching components: " + list );
 	for ( NCSComponent ncs : list ) {
 		Component c = new Component( ncs );
 		insert( new ComponentDownEvent( c, $e ) );
@@ -72,6 +74,7 @@ rule "Vpn interface (UNI) component up"
 when
 	$e : Event( $uei: uei matches ".*jnxVpnIfUp" )
 then
+	println( "Found Event " + $e.getUei() );
 	retract( $e );
 	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e, map("jnxVpnIfVpnType", 1), map("jnxVpnIfVpnName", 2));
 	for ( NCSComponent ncs : list ) {
