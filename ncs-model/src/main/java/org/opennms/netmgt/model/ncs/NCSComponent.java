@@ -80,6 +80,41 @@ public class NCSComponent {
 			m_foreignId = foreignId;
 		}
 
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result
+                    + ((m_foreignId == null) ? 0 : m_foreignId.hashCode());
+            result = prime
+                    * result
+                    + ((m_foreignSource == null) ? 0 : m_foreignSource
+                            .hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            NodeIdentification other = (NodeIdentification) obj;
+            if (m_foreignId == null) {
+                if (other.m_foreignId != null)
+                    return false;
+            } else if (!m_foreignId.equals(other.m_foreignId))
+                return false;
+            if (m_foreignSource == null) {
+                if (other.m_foreignSource != null)
+                    return false;
+            } else if (!m_foreignSource.equals(other.m_foreignSource))
+                return false;
+            return true;
+        }
+
 		
 
 	    	    
@@ -268,6 +303,19 @@ public class NCSComponent {
 	
 	public String removeAttribute(String key) {
 		return m_attributes.remove(key);
+	}
+	
+	public void visit(NCSComponentVisitor visitor) {
+	    // visit this component
+	    visitor.visitComponent(this);
+	    
+	    // visit subcomponents
+	    for(NCSComponent subcomponent : getSubcomponents()) {
+	        subcomponent.visit(visitor);
+	    }
+	    
+	    // complete visiting this component
+	    visitor.completeComponent(this);
 	}
 
 }

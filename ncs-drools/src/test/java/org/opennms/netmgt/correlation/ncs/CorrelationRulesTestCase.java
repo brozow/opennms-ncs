@@ -31,6 +31,9 @@ package org.opennms.netmgt.correlation.ncs;
 import static org.junit.Assert.assertEquals;
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import org.junit.runner.RunWith;
 import org.opennms.netmgt.EventConstants;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -85,8 +88,14 @@ public abstract class CorrelationRulesTestCase {
         return (DroolsCorrelationEngine) m_correlator.findEngineByName(engineName);
     }
 
-    protected void anticipate(Event event) {
-        getAnticipator().anticipateEvent(event);
+    protected void anticipate(Event... events) {
+        anticipate(Arrays.asList(events));
+    }
+
+    protected void anticipate(Collection<Event> events) {
+        for(Event event : events) {
+            getAnticipator().anticipateEvent(event);
+        }
     }
 
     protected Event createRemoteNodeLostServiceEvent(int nodeId, String ipAddr, String svcName, int locationMonitor) {

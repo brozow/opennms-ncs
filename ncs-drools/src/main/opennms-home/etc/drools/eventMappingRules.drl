@@ -111,6 +111,33 @@ then
 	}
 end
 
+rule "node down"
+	salience 100
+when
+	$e : Event( uei matches ".*nodeDown" )
+then
+	retract( $e );
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e /* no attributes */);
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
+		insert( new ComponentDownEvent( c, $e ) );
+	}
+end
+
+rule "node up"
+	salience 100
+when
+	$e : Event( uei matches ".*nodeUp" )
+then
+	retract( $e );
+	List<NCSComponent> list = correlationService.findComponentsByNodeIdAndAttrParmMaps($e /* no attribures */);
+	for ( NCSComponent ncs : list ) {
+		Component c = new Component( ncs );
+		insert( new ComponentUpEvent( c, $e ) );
+	}
+end
+
+
 
 function void println(Object msg)
 {

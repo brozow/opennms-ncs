@@ -33,7 +33,9 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.opennms.core.utils.InetAddressUtils.addr;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -44,10 +46,13 @@ import org.opennms.netmgt.dao.NodeDao;
 import org.opennms.netmgt.model.NetworkBuilder;
 import org.opennms.netmgt.model.OnmsDistPoller;
 import org.opennms.netmgt.model.events.EventBuilder;
+import org.opennms.netmgt.model.ncs.AbstractNCSComponentVisitor;
 import org.opennms.netmgt.model.ncs.NCSBuilder;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
+import org.opennms.netmgt.model.ncs.NCSComponent.NodeIdentification;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
+import org.opennms.netmgt.model.ncs.NCSComponentVisitor;
 import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -66,6 +71,8 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 	int m_pe1NodeId;
 	
 	int m_pe2NodeId;
+
+    private NCSComponent m_svc;
 
 	@Before
 	public void setUp() {
@@ -88,7 +95,7 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		
 		m_pe2NodeId = bldr.getCurrentNode().getId();
 		
-		NCSComponent svc = new NCSBuilder("Service", "NA-Service", "123")
+		m_svc = new NCSBuilder("Service", "NA-Service", "123")
 		.setName("CokeP2P")
 		.pushComponent("ServiceElement", "NA-ServiceElement", "8765")
 			.setName("PE1:SE1")
@@ -176,10 +183,30 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		.popComponent()
 		.get();
 		
-		m_repository.save(svc);
+		m_repository.save(m_svc);
 
 	}
-    
+	
+	
+	@Test
+	@DirtiesContext
+	public void testNodeDown() throws Exception {
+	    Event event = createNodeDownEvent(17, m_pe1NodeId);
+	    
+	    testNodeEventMapping(event, ComponentDownEvent.class, findSubcomponentsOnNode(m_svc, "space", "1111-PE1"));
+	    
+	}
+
+    @Test
+    @DirtiesContext
+    public void testNodeUp() throws Exception {
+        Event event = createNodeUpEvent(17, m_pe1NodeId);
+        
+        testNodeEventMapping(event, ComponentUpEvent.class, findSubcomponentsOnNode(m_svc, "space", "1111-PE1"));
+        
+    }
+
+
 	
 	@Test
     @DirtiesContext
@@ -253,7 +280,34 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		testEventMapping(event, ComponentUpEvent.class, "ServiceElementComponent", "NA-SvcElemComp", "9876:lspA-PE2-PE1");
     }
     
-	private void testEventMapping(Event event, Class<? extends ComponentEvent> componentEventClass,	String componentType, String componentForeignSource, String componentForeignId) {
+    private void testEventMapping(Event event, Class<? extends ComponentEvent> componentEventClass, String componentType, String componentForeignSource, String componentForeignId) {
+        // Get engine
+        DroolsCorrelationEngine engine = findEngineByName("eventMappingRules");
+        
+        assertEquals("Expected nothing but got " + engine.getMemoryObjects(), 0, engine.getMemorySize());
+        
+        engine.correlate( event );
+        
+        List<Object> memObjects = engine.getMemoryObjects();
+
+        assertEquals("Unexpected size of workingMemory " + memObjects, 1, memObjects.size());
+
+        Object eventObj = memObjects.get(0);
+
+        assertTrue( "expected " + eventObj + " to be an instance of " + componentEventClass, componentEventClass.isInstance(eventObj) );
+        assertTrue( eventObj instanceof ComponentEvent );
+        
+        ComponentEvent c = (ComponentEvent) eventObj;
+        
+        assertSame(event, c.getEvent());
+        
+        Component component = c.getComponent();
+        assertEquals(componentType, component.getType());
+        assertEquals(componentForeignSource, component.getForeignSource());
+        assertEquals(componentForeignId, component.getForeignId());
+    }
+    
+	private void testNodeEventMapping(Event event, Class<? extends ComponentEvent> componentEventClass,	Set<String> componentIds) {
 		// Get engine
         DroolsCorrelationEngine engine = findEngineByName("eventMappingRules");
         
@@ -263,21 +317,24 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
 		
 		List<Object> memObjects = engine.getMemoryObjects();
 
-		assertEquals("Unexpected size of workingMemory " + memObjects, 1, memObjects.size());
+		// expect an ComponentX event for each component
+		assertEquals("Unexpected number of events added to memory " + memObjects, componentIds.size(), memObjects.size());
+		
+		Set<String> remainingIds = new HashSet<String>(componentIds);
+		for(Object eventObj : memObjects) {
 
-		Object eventObj = memObjects.get(0);
-
-		assertTrue( "expected " + eventObj + " to be an instance of " + componentEventClass, componentEventClass.isInstance(eventObj) );
-		assertTrue( eventObj instanceof ComponentEvent );
+		    assertTrue( "expected " + eventObj + " to be an instance of " + componentEventClass, componentEventClass.isInstance(eventObj) );
+		    assertTrue( eventObj instanceof ComponentEvent );
 		
-		ComponentEvent c = (ComponentEvent) eventObj;
+		    ComponentEvent c = (ComponentEvent) eventObj;
 		
-		assertSame(event, c.getEvent());
-		
-		Component component = c.getComponent();
-		assertEquals(componentType, component.getType());
-		assertEquals(componentForeignSource, component.getForeignSource());
-		assertEquals(componentForeignId, component.getForeignId());
+		    assertSame(event, c.getEvent());
+		    
+            Component component = c.getComponent();
+            
+            String id = component.getForeignSource()+":"+component.getForeignId();
+		    assertTrue("Expected an event for component "+id, remainingIds.remove(id));
+		}
 	}
 	
 	private void testEventDup(Event event, Event event2, Class<? extends ComponentEvent> componentEventClass,	String componentType, String componentForeignSource, String componentForeignId) {
@@ -417,5 +474,44 @@ public class EventMappingRulesTest extends CorrelationRulesTestCase {
         event.setDbid(dbId);
         return event;
     }
+    
+    private Event createNodeDownEvent(int dbId, int nodeid) {
+        Event event = new EventBuilder("uei.opennms.org/nodes/nodeDown", "Test")
+                .setNodeid(nodeid)
+                .getEvent();
+        event.setDbid(dbId);
+        return event;
+    }
+    
+    private Event createNodeUpEvent(int dbId, int nodeid) {
+        Event event = new EventBuilder("uei.opennms.org/nodes/nodeUp", "Test")
+                .setNodeid(nodeid)
+                .getEvent();
+        event.setDbid(dbId);
+        return event;
+    }
+    
+    private Set<String> findSubcomponentsOnNode(NCSComponent svc, String nodeForeignSource, String nodeForeignId) {
+        final Set<String> expectedIds = new HashSet<String>();
+
+        final NodeIdentification nodeIdent = new NodeIdentification(nodeForeignSource, nodeForeignId);
+        
+        NCSComponentVisitor visitor = new AbstractNCSComponentVisitor() {
+
+            @Override
+            public void visitComponent(NCSComponent component) {
+                if (nodeIdent.equals(component.getNodeIdentification())) {
+                    expectedIds.add(component.getForeignSource()+":"+component.getForeignId());
+                }
+            }
+            
+        };
+        
+        svc.visit(visitor);
+
+        return expectedIds;
+    }
+    
+
 
 }
