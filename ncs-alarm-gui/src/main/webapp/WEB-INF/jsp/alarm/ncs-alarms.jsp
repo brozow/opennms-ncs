@@ -312,6 +312,9 @@
             <th width="3%">
               Related
             </th>
+            <th width="3%">
+              Cause
+            </th>
             <th width="5%">
               <%=this.makeSortLink( parms, SortStyle.NODE,      SortStyle.REVERSE_NODE,      "node",      "Node"      )%>
               <c:if test="${param.display == 'long'}">
@@ -396,7 +399,7 @@
           <td class="divider">
           <%String componentName = getParm(alarms[i].getParms(), "componentName"); %>
           <%if(componentName != null){ %>
-            <a href="ncs/ncs-type.htm?type=<%=componentName%>&foreignSource=<%=getParm(alarms[i].getParms(), "foreignSource")%>&foreignId=<%=getParm(alarms[i].getParms(), "foreignId")%>"><%=componentName %></a>
+            <a href="ncs/ncs-type.htm?type=<%=componentType%>&foreignSource=<%=getParm(alarms[i].getParms(), "foreignSource")%>&foreignId=<%=getParm(alarms[i].getParms(), "foreignId")%>"><%=componentName %></a>
             <nobr>
                   <a href="<%=this.makeLink( parms, new EventParmLikeFilter("componentName=" + componentName), true)%>" class="filterLink" title="Show only alarms with componentName">${addPositiveFilter}</a>
                   <a href="<%=this.makeLink( parms, new NegativeEventParmLikeFilter("componentName=" + componentName), true)%>" class="filterLink" title="Do not show alarms with componentName">${addNegativeFilter}</a>
@@ -409,6 +412,13 @@
           <%if(related != null){%>
             <nobr>
                 <a href="alarm/ncs-alarms.htm?sortby=id&amp;acktype=unack&amp;filter=parmmatchany%3dcause%3d<%=related%>"><%=related%></a>
+            </nobr>
+          <%} %>
+          </td>
+          <td class="divider" valign="middle" rowspan="1" >
+          <%if(related != null){%>
+            <nobr>
+                <a href="<%= Util.calculateUrlBase(request, "event/detail.jsp?id=" + related) %>"><%=related%></a>
             </nobr>
           <%} %>
           </td>

@@ -105,7 +105,6 @@ public class NCSListFormattingTest {
     }
     
     private String getExpectedList() {
-        // TODO Auto-generated method stub
         return "<ul>\n" +
         		"<li>CokeP2P<ul>\n" +
         		"<li>PE1:SE1<ul>\n" +
