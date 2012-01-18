@@ -25,17 +25,52 @@ import org.drools.spi.KnowledgeHelper;
 global org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine engine;
 global org.opennms.netmgt.correlation.ncs.NCSCorrelationService correlationService;
 
-
+/*
+ * ComponentDownEvent indicates an alarm
+ * ComponentUpEvent indicates an alarm resolution
+ *
+ * ComponentEventResolved indicates a pairing of alarm and resolution
+ *
+ * ComponentImpacted indicates an outage with a cause
+ *
+ * DependenciesNeeded indicates that I need to ensure the dependencies on a component are loaded
+ * 
+ * ImpactEventSent indicates that we sent the impact event
+ *
+ */
+ 
 rule "component down event"
 	salience 100
 when
 	$cde: ComponentDownEvent( $c : component, $e : event )
-	not ComponentImpacted ( target == $c )
 then
-	println( "Component '" + $c.getName() + "' is down!" );
+	println( "Component '" + $c.getName() + "' is impacted!" );
 	insert( new ComponentImpacted( $c, $cde ) );
 	insert( new DependenciesNeeded( $c, $cde ) ); 
-	sendComponentImpactedEvent( engine, $c, $e );
+end
+
+rule "send impact events"
+	salience 100
+when
+	ComponentImpacted ( $c : target, $cause : cause )
+	not ImpactEventSent( component == $c )
+then
+	println( "Sending impact event for '" + $c.getName() + "'");
+	sendComponentImpactedEvent( engine, $c, $cause.getEvent() );
+	insert( new ImpactEventSent( $c, $cause ) );
+end
+	
+
+rule "propagate impact"
+	when
+		ComponentImpacted( $child : target, $cde : cause )
+		DependsOn( $parent : a, b == $child )
+	
+	then
+		println( "Parent component '" + $parent.getName() + "' is impacted!" );
+		insert( new ComponentImpacted( $parent, $cde ) );
+		insert( new DependenciesNeeded( $parent, $cde ) ); 
+	
 end
 
 rule "component up event"
@@ -59,7 +94,6 @@ when
 then
 	retract( $d );
 	retract( $i );
-	sendComponentResolvedEvent( engine, $c, $cause.getEvent() );
 end
 
 rule "clean up resolutions"
@@ -71,18 +105,14 @@ then
 	retract( $r );
 end
 
-rule "propagate impact"
-	when
-		ComponentImpacted( $child : target, $cde : cause )
-		DependsOn( $parent : a, b == $child )
-		not ComponentImpacted( target == $parent )
-	
-	then
-		println( "Parent component '" + $parent.getName() + "' is down!" );
-		insert( new ComponentImpacted( $parent, $cde ) );
-		insert( new DependenciesNeeded( $parent, $cde ) ); 
-		sendComponentImpactedEvent( engine, $parent, $cde.getEvent() );
-	
+rule "send resolution event"
+when
+	$i : ImpactEventSent( $c : component, $cause : cause )
+	not( ComponentImpacted( target == $c ) )
+then
+	println( "Sending resolution event for '" + $c.getName() + "'" );
+	retract( $i );
+	sendComponentResolvedEvent( engine, $c, $cause.getEvent() );
 end
 
 function void println(Object msg)

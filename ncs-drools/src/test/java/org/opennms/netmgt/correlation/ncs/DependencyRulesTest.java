@@ -30,6 +30,7 @@ package org.opennms.netmgt.correlation.ncs;
 
 import static org.junit.Assert.assertEquals;
 import static org.opennms.core.utils.InetAddressUtils.addr;
+import static java.util.Collections.singleton;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -46,6 +47,7 @@ import org.opennms.netmgt.EventConstants;
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
 import org.opennms.netmgt.dao.DistPollerDao;
 import org.opennms.netmgt.dao.NodeDao;
+import org.opennms.netmgt.dao.support.CreateIfNecessaryTemplate;
 import org.opennms.netmgt.model.NetworkBuilder;
 import org.opennms.netmgt.model.OnmsDistPoller;
 import org.opennms.netmgt.model.events.EventBuilder;
@@ -290,6 +292,59 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
 
     @Test
     @DirtiesContext
+    public void testTwoCauseDownUpCase() throws Exception {
+
+        // Get engine
+        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+
+        // Antecipate down event
+        getAnticipator().reset();
+        
+        anticipate( transform( findPathToSubcomponent(m_svc,  "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)" ), toComponentImpactedEvent(17) ) );
+
+        // Generate down event
+        System.err.println("SENDING VpnPwDown EVENT!!");
+        engine.correlate( createVpnPwDownEvent( 17, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) ); //  "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)"
+
+        // Check down event
+        getAnticipator().verifyAnticipated();
+        getAnticipator().reset();
+
+        // Second outage
+        anticipate( transform( singleton( findSubcomponent(m_svc, "NA-SvcElemComp", "9876:jnxVpnIf") ), toComponentImpactedEvent(18) ) );
+        
+        System.err.println("SENDING VpnIfDown EVENT!!");
+        engine.correlate( createVpnIfDownEvent(18, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
+        
+        
+        getAnticipator().verifyAnticipated();
+        getAnticipator().reset();
+
+        // expect only the resolved subelement to come back up
+        anticipate( transform( singleton( findSubcomponent(m_svc, "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)") ), toComponentResolvedEvent(17) ) );
+        
+        // Generate up event
+        System.err.println("SENDING VpnPwUp EVENT!!");
+        engine.correlate( createVpnPwUpEvent( 19, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
+        
+        // Check up event
+        getAnticipator().verifyAnticipated();
+        getAnticipator().reset();
+
+        anticipate( transform( findPathToSubcomponent(m_svc,  "NA-SvcElemComp", "9876:jnxVpnIf" ), toComponentResolvedEvent(18) ) );
+        
+        System.err.println("SENDING VpnIfUp EVENT!!");
+        engine.correlate( createVpnIfUpEvent(20, m_pe2NodeId, "10.1.1.1", "5", "ge-3/1/4.50" ) );
+        
+        getAnticipator().verifyAnticipated();
+        
+        // Memory should be clean!
+        assertEquals( 0, engine.getMemorySize() );
+
+    }
+
+    @Test
+    @DirtiesContext
     public void testNodeDownUpCase() throws Exception {
 
         // Get engine
@@ -415,9 +470,6 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         getAnticipator().reset();
         anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)"), 17 ) );
         anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-ServiceElement", "8765"), 17 ) );
-        anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-Service", "123"), 17 ) );
-        anticipate(  createComponentImpactedEvent( findSubcomponent (m_svc, "NA-Service", "123"), 18 ) );
-        
 
         // Generate up event
         System.err.println("SENDING VpnPwUp EVENT!!");
@@ -509,6 +561,30 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         return event;
     }
 
+    private Event createVpnIfDownEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
+        
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown", "Test")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("1.2.3.1", pwtype )
+                .addParam("1.2.3.2", pwname )
+                .getEvent();
+        event.setDbid(dbId);
+        return event;
+    }
+
+    private Event createVpnIfUpEvent( int dbId, int nodeid, String ipaddr, String pwtype, String pwname ) {
+        
+        Event event = new EventBuilder("uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp", "Test")
+                .setNodeid(nodeid)
+                .setInterface( addr( ipaddr ) )
+                .addParam("1.2.3.1", pwtype )
+                .addParam("1.2.3.2", pwname )
+                .getEvent();
+        event.setDbid(dbId);
+        return event;
+    }
+    
 
     // Currently unused
     //    private Event createRootCauseEvent(int symptom, int cause) {

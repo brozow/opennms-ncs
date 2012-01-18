@@ -239,7 +239,7 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
         
         ComponentDownEvent cde = new ComponentDownEvent(c, downEvent);
         
-        anticipateFacts(cde, new ComponentImpacted(c, cde), new DependenciesNeeded(c, cde));
+        anticipateFacts(cde, new ComponentImpacted(c, cde), new DependenciesNeeded(c, cde), new ImpactEventSent(c, cde));
         
         anticipateEvent(createComponentImpactedEvent("ServiceElementComponent", "jnxVpnPw-vcid(50)", "NA-SvcElemComp", "9876:jnxVpnPw-vcid(50)", 17));
         
@@ -294,14 +294,16 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
         
         DependsOn dep = new DependsOn( parent, c );
         ComponentImpacted componentImpacted = new ComponentImpacted(c, cde);
+        ImpactEventSent eventSent = new ImpactEventSent( c, cde);
         
-		anticipateFacts( dep, componentImpacted, new ComponentImpacted( parent, cde ), new DependenciesNeeded(parent, cde));
+		anticipateFacts( dep, componentImpacted, eventSent, new ComponentImpacted( parent, cde ), new DependenciesNeeded(parent, cde), new ImpactEventSent(parent, cde));
         
         anticipateEvent(createComponentImpactedEvent("ServiceElement", "PE2:SE1", "NA-SvcElement", "9876", 17));
         
         // Insert facts and fire rules
 		FactHandle impactHandle = m_engine.getWorkingMemory().insert( componentImpacted );
 		FactHandle depHandle = m_engine.getWorkingMemory().insert( dep );
+		FactHandle eventSentHandle = m_engine.getWorkingMemory().insert( eventSent );
 		m_engine.getWorkingMemory().fireAllRules();
         
         // pretend to be a using rule that inserts the DependenciesNeeded fact
@@ -324,6 +326,7 @@ public class ImpactProgagationRulesTest extends CorrelationRulesTestCase {
         
         m_engine.getWorkingMemory().retract(impactHandle);
         m_engine.getWorkingMemory().retract(depHandle);
+        m_engine.getWorkingMemory().retract(eventSentHandle);
         m_engine.getWorkingMemory().insert(new ComponentEventResolved(cde, cue) );
         
         m_engine.getWorkingMemory().fireAllRules();
