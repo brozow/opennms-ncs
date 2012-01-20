@@ -28,11 +28,10 @@
 
 package org.opennms.netmgt.correlation.ncs;
 
+import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.opennms.core.utils.InetAddressUtils.addr;
-import static java.util.Collections.singleton;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -43,20 +42,16 @@ import java.util.Stack;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.opennms.netmgt.EventConstants;
 import org.opennms.netmgt.correlation.drools.DroolsCorrelationEngine;
 import org.opennms.netmgt.dao.DistPollerDao;
 import org.opennms.netmgt.dao.NodeDao;
-import org.opennms.netmgt.dao.support.CreateIfNecessaryTemplate;
 import org.opennms.netmgt.model.NetworkBuilder;
 import org.opennms.netmgt.model.OnmsDistPoller;
 import org.opennms.netmgt.model.events.EventBuilder;
 import org.opennms.netmgt.model.ncs.AbstractNCSComponentVisitor;
 import org.opennms.netmgt.model.ncs.NCSBuilder;
 import org.opennms.netmgt.model.ncs.NCSComponent;
-import org.opennms.netmgt.model.ncs.NCSComponentVisitor;
 import org.opennms.netmgt.model.ncs.NCSComponent.DependencyRequirements;
-import org.opennms.netmgt.model.ncs.NCSComponent.NodeIdentification;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
 import org.opennms.netmgt.xml.event.Event;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -342,6 +337,95 @@ public class DependencyRulesTest extends CorrelationRulesTestCase {
         assertEquals( 0, engine.getMemorySize() );
 
     }
+    
+    
+ // Test two down and two up events where the initial event that caused the propagation is
+    // resolved but a new component goes down. The expectation is that the service should remain
+    // down instead of going back up and then down again. This was reproduced with the following :
+    //echo "Send IfDown and PwDown"
+    //send-event.pl --parm "jnxVpnIfVpnName ge-1/3/2.1" --parm "jnxVpnIfVpnType 5" -n 5 uei.opennms.org/vendor/Juniper/traps/jnxVpnIfDown
+    //send-event.pl  --parm "jnxVpnPwVpnName ge-1/3/2.1" --parm "jnxVpnPwVpnType 5" -n 5 uei.opennms.org/vendor/Juniper/traps/jnxVpnPwDown
+    //sleep 10
+    //echo "Send IfUp and PwUp in same order this causes issue with clearing"
+    //send-event.pl --parm "jnxVpnIfVpnName ge-1/3/2.1" --parm "jnxVpnIfVpnType 5" -n 5 uei.opennms.org/vendor/Juniper/traps/jnxVpnIfUp
+    //send-event.pl --parm "jnxVpnPwVpnName ge-1/3/2.1" --parm "jnxVpnPwVpnType 5" -n 5 uei.opennms.org/vendor/Juniper/traps/jnxVpnPwUp
+    @Test
+    @DirtiesContext
+    public void testTwoOutagesTwoResolutionsCase() throws Exception {
+        // Test what happens to the parent when there are two children impacted one is resolved
+
+        // Get engine
+        DroolsCorrelationEngine engine = findEngineByName("dependencyRules");
+
+        // Anticipate 1st down event
+        getAnticipator().reset();
+        anticipate(  createComponentImpactedEvent( findSubcomponent (m_svc, "NA-SvcElemComp", "8765:jnxVpnIf"), 17 ) );
+        anticipate(  createComponentImpactedEvent( findSubcomponent (m_svc, "NA-ServiceElement", "8765"), 17 ) );
+        anticipate(  createComponentImpactedEvent(findSubcomponent (m_svc, "NA-Service", "123"), 17 ) );
+
+        // Generate vpn if down event
+        System.err.println("SENDING VpnIfDown EVENT!!");
+        engine.correlate( createVpnIfDownEvent( 17, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" ) );
+
+        // Check down event
+        getAnticipator().verifyAnticipated();
+
+        // Anticipate 2nd down event
+        getAnticipator().reset();
+        anticipate(  createComponentImpactedEvent( findSubcomponent (m_svc, "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)"), 18 ) );
+        //anticipate(  createComponentImpactedEvent( findSubcomponent (m_svc, "NA-ServiceElement", "8765"), 18 ) );
+
+        // Should we get this?
+        //anticipate(  createComponentImpactedEvent( "Service", "CokeP2P", "NA-Service", "123", 18 ) );
+
+        // Generate vpn down event
+        System.err.println("SENDING VpnPwDown EVENT!!");
+        engine.correlate( createVpnPwDownEvent( 18, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" ) );
+
+        // Check 2nd down event
+        getAnticipator().verifyAnticipated();
+
+        // Anticipate up event
+        getAnticipator().reset();
+        anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-SvcElemComp", "8765:jnxVpnIf"), 17 ) );
+
+        // The next two should not happen until the underlying subcomponents are also resolved
+        //anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-ServiceElement", "8765"), 17 ) );
+        //anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-Service", "123"), 17 ) );
+
+        //anticipate(  createComponentImpactedEvent( findSubcomponent (m_svc, "NA-ServiceElement", "8765"), 18 ) );
+        //anticipate(  createComponentImpactedEvent( findSubcomponent (m_svc, "NA-Service", "123"), 18 ) );
+
+
+        // Generate up event
+        System.err.println("SENDING VpnIfUp EVENT!!");
+        engine.correlate( createVpnIfUpEvent( 19, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" ) );
+
+        // Check up event
+        getAnticipator().verifyAnticipated();
+
+        // Anticipate 2nd up event
+        getAnticipator().reset();
+        anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-SvcElemComp", "8765:jnxVpnPw-vcid(50)"), 18 ) );
+        anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-ServiceElement", "8765"), 18 ) );
+
+        anticipate(  createComponentResolvedEvent( findSubcomponent (m_svc, "NA-Service", "123"), 18 ) );
+
+
+        // Generate up event
+        System.err.println("SENDING VpnPwUp EVENT!!");
+        engine.correlate( createVpnPwUpEvent( 20, m_pe1NodeId, "10.1.1.1", "5", "ge-1/0/2.50" ) );
+
+        // Check up event
+        getAnticipator().verifyAnticipated();
+
+
+        // Memory should be clean!
+        assertEquals( 0, engine.getMemorySize() );
+
+
+    }
+
 
     @Test
     @DirtiesContext
