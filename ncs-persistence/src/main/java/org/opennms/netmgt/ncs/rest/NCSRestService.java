@@ -49,6 +49,12 @@ import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
+import org.hibernate.criterion.Restrictions;
+import org.opennms.netmgt.dao.AlarmDao;
+import org.opennms.netmgt.dao.EventDao;
+import org.opennms.netmgt.model.OnmsAlarm;
+import org.opennms.netmgt.model.OnmsCriteria;
+import org.opennms.netmgt.model.OnmsEvent;
 import org.opennms.netmgt.model.ncs.NCSComponent;
 import org.opennms.netmgt.model.ncs.NCSComponentRepository;
 import org.slf4j.Logger;
@@ -153,6 +159,12 @@ public class NCSRestService  {
 	@Autowired
 	NCSComponentRepository m_componentRepo;
 	
+	@Autowired
+	EventDao m_eventDao;
+	
+	@Autowired
+	AlarmDao m_alarmDao;
+	
     @Context 
     UriInfo m_uriInfo;
     
@@ -193,23 +205,47 @@ public class NCSRestService  {
     public Response deleteComponent(@PathParam("type") String type, @PathParam("foreignSource") String foreignSource, @PathParam("foreignId") String foreignId) {
         s_log.info(String.format("deleteComponent: Deleting component of type %s and foreignIdentity %s:%s", type, foreignSource, foreignId));
 
-    	NCSComponent component = m_componentRepo.findByTypeAndForeignIdentity(type, foreignSource, foreignId);
-    	
-    	
-    	if (component == null) {
-    		throw new WebApplicationException(Status.BAD_REQUEST);
-    	}
-    	
-    	List<NCSComponent> parents = m_componentRepo.findComponentsThatDependOn(component);
-    	
-    	for(NCSComponent parent : parents)
-    	{
-    		parent.getSubcomponents().remove(component);
-    	}
-    	
-    	m_componentRepo.delete(component);
-    	
-    	return Response.ok().build();
+        NCSComponent component = m_componentRepo.findByTypeAndForeignIdentity(type, foreignSource, foreignId);
+
+
+        if (component == null) {
+            throw new WebApplicationException(Status.BAD_REQUEST);
+        }
+
+        List<NCSComponent> parents = m_componentRepo.findComponentsThatDependOn(component);
+
+        for(NCSComponent parent : parents)
+        {
+            parent.getSubcomponents().remove(component);
+        }
+
+        m_componentRepo.delete(component);
+
+        OnmsCriteria criteria = new OnmsCriteria(OnmsEvent.class)
+        .add(Restrictions.like("eventParms", "%componentForeignSource=" + foreignSource +"%"))
+        .add(Restrictions.like("eventParms", "%componentForeignId=" + foreignId +"%"));
+
+        List<OnmsEvent> events = m_eventDao.findMatching(criteria);
+
+        for(OnmsEvent event : events) {
+            m_eventDao.delete(event);
+        }
+
+        m_eventDao.flush();
+
+        OnmsCriteria alarmCriteria = new OnmsCriteria(OnmsAlarm.class)
+        .add(Restrictions.like("eventParms", "%componentForeignSource=" + foreignSource +"%"))
+        .add(Restrictions.like("eventParms", "%componentForeignId=" + foreignId +"%"));
+
+        List<OnmsAlarm> alarms = m_alarmDao.findMatching(alarmCriteria);
+
+        for(OnmsAlarm alarm : alarms) {
+            m_alarmDao.delete(alarm);
+        }
+
+        m_alarmDao.flush();
+
+        return Response.ok().build();
     }
     
     @GET
